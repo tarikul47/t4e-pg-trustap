@@ -194,6 +194,9 @@ class T4e_Pg_Trustap
 
 		$plugin_public = new T4e_Pg_Trustap_Public($this->get_plugin_name(), $this->get_version());
 
+
+		$this->loader->add_filter('wcfm_marketplace_settings_fields_billing', $plugin_public, 'wcfmmp_custom_pg_vendor_setting', 50, 2);
+
 		$this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
 		$this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
 

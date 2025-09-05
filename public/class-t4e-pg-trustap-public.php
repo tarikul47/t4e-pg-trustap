@@ -20,7 +20,8 @@
  * @subpackage T4e_Pg_Trustap/public
  * @author     Tarikul Islam <tarikul47@gmail.com>
  */
-class T4e_Pg_Trustap_Public {
+class T4e_Pg_Trustap_Public
+{
 
 	/**
 	 * The ID of this plugin.
@@ -47,11 +48,42 @@ class T4e_Pg_Trustap_Public {
 	 * @param      string    $plugin_name       The name of the plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct($plugin_name, $version)
+	{
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
+	}
+
+	public function wcfmmp_custom_pg_vendor_setting($vendor_billing_fields, $vendor_id)
+	{
+		$gateway_slug = WCFMTrustap_GATEWAY;
+
+		$vendor_data = get_user_meta($vendor_id, 'wcfmmp_profile_settings', true);
+		$vendor_data = $vendor_data ? $vendor_data : [];
+		$settings = array();
+
+		$vendor_billing_fields += array(
+			$gateway_slug . '_connection' => array(
+				'label' => __('Connect Your Trustap account', 'wc-multivendor-marketplace'),
+				'type' => 'html',
+				'name' => 'payment[' . $gateway_slug . '][nationality]',
+				'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
+				'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
+				// 'value' => $settings['nationality'],
+				'value' => '<button>Connect</button>',
+				'custom_attributes' => array(
+					'required' => 'required'
+				),
+			),
+		); 
+
+		
+		//TODO: condion wise need to show Connected button with logout button 
+		//TODO: Need to show loading bar and sucsss message
+
+		return $vendor_billing_fields;
 	}
 
 	/**
@@ -59,7 +91,8 @@ class T4e_Pg_Trustap_Public {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_styles() {
+	public function enqueue_styles()
+	{
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -73,7 +106,7 @@ class T4e_Pg_Trustap_Public {
 		 * class.
 		 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/t4e-pg-trustap-public.css', array(), $this->version, 'all' );
+		wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/t4e-pg-trustap-public.css', array(), $this->version, 'all');
 
 	}
 
@@ -82,7 +115,8 @@ class T4e_Pg_Trustap_Public {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts()
+	{
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -96,7 +130,7 @@ class T4e_Pg_Trustap_Public {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/t4e-pg-trustap-public.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/t4e-pg-trustap-public.js', array('jquery'), $this->version, false);
 
 	}
 
