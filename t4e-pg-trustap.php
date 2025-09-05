@@ -9,7 +9,7 @@
  * that starts the plugin.
  *
  * @link              https://onlytarikul.com
- * @since             1.0.0
+ * @since             2.0.0
  * @package           T4e_Pg_Trustap
  *
  * @wordpress-plugin
@@ -76,24 +76,6 @@ register_deactivation_hook(__FILE__, 'deactivate_t4e_pg_trustap');
  * admin-specific hooks, and public-facing site hooks.
  */
 require plugin_dir_path(__FILE__) . 'includes/class-t4e-pg-trustap.php';
-
-/**
- * Begins execution of the plugin.
- *
- * Since everything within the plugin is registered via hooks,
- * then kicking off the plugin from this point in the file does
- * not affect the page life cycle.
- *
- * @since    1.0.0
- */
-// function run_t4e_pg_trustap()
-// {
-
-// 	$plugin = new T4e_Pg_Trustap();
-// 	$plugin->run();
-
-// }
-// run_t4e_pg_trustap();
 
 
 /**
