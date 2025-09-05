@@ -9,14 +9,14 @@
  * that starts the plugin.
  *
  * @link              https://onlytarikul.com
- * @since             2.0.0
+ * @since             1.0.0
  * @package           T4e_Pg_Trustap
  *
  * @wordpress-plugin
  * Plugin Name:       Talent4energy Vendor Payment - Trustap
  * Plugin URI:        https://talent4energy.com
  * Description:       WCFM Marketplace Trustap vendor payment gateway.
- * Version:           2.0.0
+ * Version:           1.0.0
  * Author:            Tarikul Islam
  * Author URI:        https://onlytarikul.com/
  * License:           GPL-2.0+
