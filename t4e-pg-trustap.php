@@ -16,7 +16,7 @@
  * Plugin Name:       Talent4energy Vendor Payment - Trustap
  * Plugin URI:        https://talent4energy.com
  * Description:       WCFM Marketplace Trustap vendor payment gateway.
- * Version:           1.0.0
+ * Version:           2.0.0
  * Author:            Tarikul Islam
  * Author URI:        https://onlytarikul.com/
  * License:           GPL-2.0+
