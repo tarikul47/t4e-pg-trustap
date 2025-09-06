@@ -64,22 +64,47 @@ class T4e_Pg_Trustap_Public
 		$vendor_data = $vendor_data ? $vendor_data : [];
 		$settings = array();
 
-		$vendor_billing_fields += array(
-			$gateway_slug . '_connection' => array(
-				'label' => __('Connect Your Trustap account', 'wc-multivendor-marketplace'),
-				'type' => 'html',
-				'name' => 'payment[' . $gateway_slug . '][nationality]',
-				'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
-				'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
-				// 'value' => $settings['nationality'],
-				'value' => '<button>Connect</button>',
-				'custom_attributes' => array(
-					'required' => 'required'
-				),
-			),
-		); 
+		$trustap_user_id = get_user_meta($vendor_id, 'trustap_user_id', true);
+		$trustap_user_id = 'kkkk';
 
-		
+		$trustap_profile_link = '#';
+
+		if ($trustap_user_id) {
+			$vendor_billing_fields += array(
+				$gateway_slug . '_connection' => array(
+					'label' => __('Connect Your Trustap account', 'wc-multivendor-marketplace'),
+					'type' => 'html',
+					'name' => 'payment[' . $gateway_slug . '][nationality]',
+					'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
+					'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
+					// 'value' => $settings['nationality'],
+					'value' => '<button>You have connected successfully!</button> <p>Please completed your profile before withdrwa your earnings - <a href="' . $trustap_profile_link . '">Click Here</a></p>',
+					'custom_attributes' => array(
+						'required' => 'required'
+					),
+					'hints' => 'dddfddfdfe bddehdedhf djehehd'
+				),
+			);
+		} else {
+			$vendor_billing_fields += array(
+				$gateway_slug . '_connection' => array(
+					'label' => __('Connect Your Trustap account', 'wc-multivendor-marketplace'),
+					'type' => 'html',
+					'name' => 'payment[' . $gateway_slug . '][nationality]',
+					'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
+					'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
+					// 'value' => $settings['nationality'],
+					'value' => '<p>To receive oayouts, you must connect your Trustap account.</p><button>Connect</button>',
+					'custom_attributes' => array(
+						'required' => 'required'
+					),
+					'hints' => 'dddfddfdfe bddehdedhf djehehd'
+				),
+			);
+		}
+
+
+
 		//TODO: condion wise need to show Connected button with logout button 
 		//TODO: Need to show loading bar and sucsss message
 
