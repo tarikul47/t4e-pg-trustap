@@ -68,6 +68,9 @@ class T4e_Pg_Trustap_Public
 		$settings = array();
 
 		$trustap_user_id = get_user_meta($vendor_id, 'trustap_user_id', true);
+
+		delete_user_meta( $vendor_id, 'trustap_user_id');
+
 		//$trustap_user_id = 'kkkk';
 
 		$trustap_profile_link = '#';
