@@ -75,7 +75,7 @@ class T4e_Pg_Trustap_Public
 
 		//var_dump($trustap_user_id);
 
-		$trustap_user_id = '';
+		//$trustap_user_id = '';
 
 		$trustap_profile_link = '#';
 
@@ -92,7 +92,7 @@ class T4e_Pg_Trustap_Public
 					'custom_attributes' => array(
 						'required' => 'required'
 					),
-					'hints' => 'dddfddfdfe bddehdedhf djehehd'
+					'hints' => ''
 				),
 			);
 		} else {
