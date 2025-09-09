@@ -71,7 +71,7 @@ class T4e_Pg_Trustap_Public
 
 		//var_dump($trustap_user_id);
 
-		delete_user_meta( $vendor_id, 'trustap_user_id');
+		delete_user_meta($vendor_id, 'trustap_user_id');
 
 		//var_dump($trustap_user_id);
 
@@ -141,15 +141,21 @@ class T4e_Pg_Trustap_Public
 		if (isset($code) && isset($state)) {
 			$logger->info('Code and state parameter found.', $context);
 
-			$user_id = get_current_user_id();
-			$saved_state = get_transient('trustap_oauth_state_' . $user_id);
+			// Retrieve the saved state directly using the incoming state as the key
+			$saved_state = get_transient('trustap_oauth_state_' . $state);
 
+			// State check: check if the key exists AND if the value matches the incoming state
 			if (!$saved_state || $state !== $saved_state) {
-				$logger->error('State verification failed.', $context);
+				$logger->error('State verification failed. Saved State: ' . $saved_state . ' | Incoming State: ' . $state, $context);
 				wp_die('State verification failed. Please try again.');
 			}
 
-			delete_transient('trustap_oauth_state_' . $user_id);
+			// Decode the state to get the user ID
+			$state_data = json_decode(base64_decode($state), true);
+			$user_id = $state_data['user_id']; // Use the user ID embedded in the state
+
+			delete_transient('trustap_oauth_state_' . $state); // Delete using the full state string
+
 			$logger->info('State verified.', $context);
 
 			$trustap_settings = get_option('woocommerce_trustap_settings', array());
@@ -240,8 +246,15 @@ class T4e_Pg_Trustap_Public
 		$redirect_uri = urlencode(admin_url('admin-ajax.php?action=wcfm_trustap_oauth_callback'));
 
 		// Generate a random state and store it in a transient
-		$state = bin2hex(random_bytes(16));
-		set_transient('trustap_oauth_state_' . get_current_user_id(), $state, 15 * 60); // 15 minute expiration
+		//$state = bin2hex(random_bytes(16));
+		//set_transient('trustap_oauth_state_' . get_current_user_id(), $state, 15 * 60); // 15 minute expiration
+
+		$user_id = get_current_user_id();
+		$state_data = json_encode(['user_id' => $user_id, 'random' => bin2hex(random_bytes(8))]);
+		$state = base64_encode($state_data);
+
+		// Save the state using the full state string as the key to avoid transient lookup issues
+		set_transient('trustap_oauth_state_' . $state, $state, 15 * 60);
 
 		$scope = urlencode('openid p2p_tx:offline_create_join p2p_tx:offline_accept_deposit p2p_tx:offline_cancel p2p_tx:offline_confirm_handover');
 
