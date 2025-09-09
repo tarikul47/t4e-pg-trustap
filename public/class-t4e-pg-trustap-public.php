@@ -67,6 +67,12 @@ class T4e_Pg_Trustap_Public
 		$vendor_data = $vendor_data ? $vendor_data : [];
 		$settings = array();
 
+		$trustap_settings = get_option('woocommerce_trustap_settings', array());
+		$test_mode = (isset($trustap_settings['testmode']) && $trustap_settings['testmode'] === 'yes') ? true : false;
+		$environment = $test_mode ? 'test' : 'live';
+		$client_id = get_option("trustap_{$environment}_client_id");
+
+
 		$trustap_user_id = get_user_meta($vendor_id, 'trustap_user_id', true);
 
 		//var_dump($trustap_user_id);
@@ -77,7 +83,7 @@ class T4e_Pg_Trustap_Public
 
 		//$trustap_user_id = '';
 
-		$trustap_profile_link = '#';
+		$trustap_profile_link = "https://app.stage.trustap.com/profile/payout/personal?edit=true&client_id={$client_id}";
 
 		if ($trustap_user_id) {
 			$vendor_billing_fields += array(
@@ -88,7 +94,7 @@ class T4e_Pg_Trustap_Public
 					'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
 					'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
 					// 'value' => $settings['nationality'],
-					'value' => '<button>You have connected successfully!</button> <p>Please completed your profile before withdrwa your earnings - <a href="' . $trustap_profile_link . '">Click Here</a></p>',
+					'value' => '<button>You have connected successfully!</button> <p>Please completed your profile before withdrwa your earnings - <a target="_blank" href="' . $trustap_profile_link . '">Click Here</a></p>',
 					'custom_attributes' => array(
 						'required' => 'required'
 					),
