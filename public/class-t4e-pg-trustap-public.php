@@ -77,7 +77,7 @@ class T4e_Pg_Trustap_Public
 
 		//var_dump($trustap_user_id);
 
-		//delete_user_meta($vendor_id, 'trustap_user_id');
+		delete_user_meta($vendor_id, 'trustap_user_id');
 
 		//var_dump($trustap_user_id);
 
@@ -102,6 +102,11 @@ class T4e_Pg_Trustap_Public
 				),
 			);
 		} else {
+			if (!session_id()) {
+				session_start();
+			}
+			$_SESSION['trustap_redirect_url'] = home_url($_SERVER['REQUEST_URI']);
+
 			$vendor_billing_fields += array(
 				$gateway_slug . '_connection' => array(
 					'label' => __('Connect Trustap account', 'wc-multivendor-marketplace'),
