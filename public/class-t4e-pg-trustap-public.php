@@ -82,7 +82,7 @@ class T4e_Pg_Trustap_Public
 		if ($trustap_user_id) {
 			$vendor_billing_fields += array(
 				$gateway_slug . '_connection' => array(
-					'label' => __('Connect Your Trustap account', 'wc-multivendor-marketplace'),
+					'label' => __('Connect Trustap account', 'wc-multivendor-marketplace'),
 					'type' => 'html',
 					'name' => 'payment[' . $gateway_slug . '][nationality]',
 					'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
@@ -98,17 +98,17 @@ class T4e_Pg_Trustap_Public
 		} else {
 			$vendor_billing_fields += array(
 				$gateway_slug . '_connection' => array(
-					'label' => __('Connect Your Trustap account', 'wc-multivendor-marketplace'),
+					'label' => __('Connect Trustap account', 'wc-multivendor-marketplace'),
 					'type' => 'html',
 					'name' => 'payment[' . $gateway_slug . '][nationality]',
 					'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
 					'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
 					// 'value' => $settings['nationality'],
-					'value' => '<p>To receive oayouts, you must connect your Trustap account.</p><a href="' . esc_url($this->get_trustap_auth_url()) . '" class="button">Connect</a>',
+					'value' => '<a href="' . esc_url($this->get_trustap_auth_url()) . '" class="button">Connect</a>',
 					'custom_attributes' => array(
 						'required' => 'required'
 					),
-					'hints' => 'dddfddfdfe bddehdedhf djehehd'
+					'hints' => '<p>To receive oayouts, you must connect your Trustap account.</p>'
 				),
 			);
 		}
