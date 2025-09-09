@@ -69,7 +69,7 @@ class T4e_Pg_Trustap_Public
 
 		$trustap_user_id = get_user_meta($vendor_id, 'trustap_user_id', true);
 
-		//var_dump($trustap_user_id);
+		var_dump($trustap_user_id);
 
 		delete_user_meta($vendor_id, 'trustap_user_id');
 
