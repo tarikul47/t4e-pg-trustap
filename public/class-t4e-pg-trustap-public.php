@@ -77,7 +77,7 @@ class T4e_Pg_Trustap_Public
 
 		//var_dump($trustap_user_id);
 
-		//delete_user_meta($vendor_id, 'trustap_user_id');
+		delete_user_meta($vendor_id, 'trustap_user_id');
 
 		//var_dump($trustap_user_id);
 
@@ -105,7 +105,7 @@ class T4e_Pg_Trustap_Public
 			if (!session_id()) {
 				session_start();
 			}
-			$_SESSION['trustap_redirect_url'] = home_url($_SERVER['REQUEST_URI']);
+			$_SESSION['trustap_redirect_url'] = home_url($_SERVER['REQUEST_URI']) . '#wcfm_settings_form_payment_head';
 
 			$vendor_billing_fields += array(
 				$gateway_slug . '_connection' => array(
