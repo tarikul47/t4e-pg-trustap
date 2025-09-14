@@ -66,6 +66,7 @@ class T4e_Pg_Trustap_Public
 
 		//TODO: Need to set in special class 
 		add_action('wp_ajax_wcfm_trustap_oauth_callback', array($this, 'handle_oauth_callback_ajax'));
+		add_action('wp_ajax_wcfm_trustap_disconnect', array($this, 'handle_disconnect_ajax'));
 
 	}
 
@@ -96,6 +97,7 @@ class T4e_Pg_Trustap_Public
 		$trustap_profile_link = "https://app.stage.trustap.com/profile/payout/personal?edit=true&client_id={$client_id}";
 
 		if ($trustap_user_id) {
+			$disconnect_url = admin_url('admin-ajax.php?action=wcfm_trustap_disconnect');
 			$vendor_billing_fields += array(
 				$gateway_slug . '_connection' => array(
 					'label' => __('Connect Trustap account', 'wc-multivendor-marketplace'),
@@ -103,8 +105,7 @@ class T4e_Pg_Trustap_Public
 					'name' => 'payment[' . $gateway_slug . '][nationality]',
 					'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
 					'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
-					// 'value' => $settings['nationality'],
-					'value' => '<button>You have connected successfully!</button> <p>Please completed your profile before withdrwa your earnings - <a target="_blank" href="' . $trustap_profile_link . '">Click Here</a></p>',
+					'value' => '<p>You have connected successfully! <a href="' . esc_url($disconnect_url) . '" class="button">Disconnect</a></p><p>Please completed your profile before withdrwa your earnings - <a target="_blank" href="' . $trustap_profile_link . '">Click Here</a></p>',
 					'custom_attributes' => array(
 						'required' => 'required'
 					),
@@ -141,6 +142,28 @@ class T4e_Pg_Trustap_Public
 		//TODO: profile link 
 
 		return $vendor_billing_fields;
+	}
+
+	public function handle_disconnect_ajax()
+	{
+		if (!is_user_logged_in()) {
+			wp_die('You must be logged in to perform this action.');
+		}
+
+		$user_id = get_current_user_id();
+
+		delete_user_meta($user_id, 'trustap_user_id');
+		delete_user_meta($user_id, 'trustap_access_token');
+		delete_user_meta($user_id, 'trustap_refresh_token');
+
+		if (!session_id()) {
+			session_start();
+		}
+		$redirect_url = isset($_SESSION['trustap_redirect_url']) ? $_SESSION['trustap_redirect_url'] : get_wcfm_url();
+		unset($_SESSION['trustap_redirect_url']);
+
+		wp_redirect($redirect_url);
+		exit;
 	}
 
 	//TODO: The function need to set in Special class for server this purpose 
