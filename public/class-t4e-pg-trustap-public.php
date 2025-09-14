@@ -42,6 +42,15 @@ class T4e_Pg_Trustap_Public
 	private $version;
 
 	/**
+	 * The Trustap API instance.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 * @var      WCFM_Trustap_API    $trustap_api    The Trustap API instance.
+	 */
+	private $trustap_api;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -53,6 +62,7 @@ class T4e_Pg_Trustap_Public
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+		$this->trustap_api = new WCFM_Trustap_API();
 
 		//TODO: Need to set in special class 
 		add_action('wp_ajax_wcfm_trustap_oauth_callback', array($this, 'handle_oauth_callback_ajax'));
@@ -77,7 +87,7 @@ class T4e_Pg_Trustap_Public
 
 		//var_dump($trustap_user_id);
 
-		//delete_user_meta($vendor_id, 'trustap_user_id');
+		delete_user_meta($vendor_id, 'trustap_user_id');
 
 		//var_dump($trustap_user_id);
 
@@ -150,93 +160,19 @@ class T4e_Pg_Trustap_Public
 		$state = isset($_GET['state']) ? sanitize_text_field($_GET['state']) : null;
 
 		if (isset($code) && isset($state)) {
-			$logger->info('Code and state parameter found.', $context);
-
-			// Retrieve the saved state directly using the incoming state as the key
-			$saved_state = get_transient('trustap_oauth_state_' . $state);
-
-			// State check: check if the key exists AND if the value matches the incoming state
-			if (!$saved_state || $state !== $saved_state) {
-				$logger->error('State verification failed. Saved State: ' . $saved_state . ' | Incoming State: ' . $state, $context);
-				wp_die('State verification failed. Please try again.');
-			}
-
-			// Decode the state to get the user ID
-			$state_data = json_decode(base64_decode($state), true);
-			$user_id = $state_data['user_id']; // Use the user ID embedded in the state
-
-			delete_transient('trustap_oauth_state_' . $state); // Delete using the full state string
-
-			$logger->info('State verified.', $context);
-
-			$trustap_settings = get_option('woocommerce_trustap_settings', array());
-			$test_mode = (isset($trustap_settings['testmode']) && $trustap_settings['testmode'] === 'yes');
-			$environment = $test_mode ? 'test' : 'live';
-			$client_id = get_option("trustap_{$environment}_client_id");
-			$client_secret = get_option("trustap_{$environment}_client_secret");
-
-			$logger->info('Environment: ' . $environment, $context);
-
-			$realm = $test_mode ? 'trustap-stage' : 'trustap';
-			$token_url = sprintf('https://sso.trustap.com/auth/realms/%s/protocol/openid-connect/token', $realm);
-
-			$logger->info('Requesting token from: ' . $token_url, $context);
-
-			$response = wp_remote_post($token_url, array(
-				'method' => 'POST',
-				'headers' => array(
-					'Content-Type' => 'application/x-www-form-urlencoded',
-				),
-				'body' => array(
-					'grant_type' => 'authorization_code',
-					'code' => $code,
-					'redirect_uri' => admin_url('admin-ajax.php?action=wcfm_trustap_oauth_callback'),
-					'client_id' => $client_id,
-					'client_secret' => $client_secret,
-				),
-			));
-
-			if (is_wp_error($response)) {
-				$logger->error('Token request failed: ' . $response->get_error_message(), $context);
-				wp_die('Token request failed.');
-			}
-
-			$body = wp_remote_retrieve_body($response);
-			$data = json_decode($body, true);
-
-			$logger->info('Token response body: ' . print_r($data, true), $context);
-
-			// --- FIX: Store both id_token and access_token
-			if (isset($data['id_token']) && isset($data['access_token'])) {
-				$id_token_parts = explode('.', $data['id_token']);
-				$id_token_payload = json_decode(base64_decode($id_token_parts[1]), true);
-
-				if (isset($id_token_payload['sub'])) {
-					$logger->info('Trustap user ID found: ' . $id_token_payload['sub'], $context);
-					$logger->info('Access Token found: ' . $data['access_token'], $context);
-
-					update_user_meta($user_id, 'trustap_user_id', $id_token_payload['sub']);
-					update_user_meta($user_id, 'trustap_access_token', $data['access_token']);
-					update_user_meta($user_id, 'trustap_refresh_token', $data['refresh_token']);
-
-					$logger->info('User meta updated for user ID: ' . $user_id, $context);
-
-					if (!session_id()) {
-						session_start();
-					}
-					$redirect_url = isset($_SESSION['trustap_redirect_url']) ? $_SESSION['trustap_redirect_url'] : get_wcfm_url();
-					unset($_SESSION['trustap_redirect_url']);
-
-					$logger->info('Redirecting to: ' . $redirect_url, $context);
-					wp_redirect($redirect_url);
-					exit;
-				} else {
-					$logger->error('Trustap user ID (sub) not found in token payload.', $context);
-					wp_die('Trustap user ID not found in token payload.');
+			if ($this->trustap_api->handle_oauth_callback($code, $state)) {
+				if (!session_id()) {
+					session_start();
 				}
+				$redirect_url = isset($_SESSION['trustap_redirect_url']) ? $_SESSION['trustap_redirect_url'] : get_wcfm_url();
+				unset($_SESSION['trustap_redirect_url']);
+
+				$logger->info('Redirecting to: ' . $redirect_url, $context);
+				wp_redirect($redirect_url);
+				exit;
 			} else {
-				$logger->error('ID token or Access Token not found in response.', $context);
-				wp_die('Authentication failed. Required tokens not found.');
+				$logger->error('Trustap user ID (sub) not found in token payload.', $context);
+				wp_die('Trustap user ID not found in token payload.');
 			}
 		} else {
 			$logger->error('Code and/or state parameter not found in request.', $context);
@@ -249,38 +185,7 @@ class T4e_Pg_Trustap_Public
 
 	public function get_trustap_auth_url()
 	{
-		$trustap_settings = get_option('woocommerce_trustap_settings', array());
-		$test_mode = (isset($trustap_settings['testmode']) && $trustap_settings['testmode'] === 'yes') ? true : false;
-		$environment = $test_mode ? 'test' : 'live';
-		$client_id = get_option("trustap_{$environment}_client_id");
-
-		$redirect_uri = urlencode(admin_url('admin-ajax.php?action=wcfm_trustap_oauth_callback'));
-
-		// Generate a random state and store it in a transient
-		//$state = bin2hex(random_bytes(16));
-		//set_transient('trustap_oauth_state_' . get_current_user_id(), $state, 15 * 60); // 15 minute expiration
-
-		$user_id = get_current_user_id();
-		$state_data = json_encode(['user_id' => $user_id, 'random' => bin2hex(random_bytes(8))]);
-		$state = base64_encode($state_data);
-
-		// Save the state using the full state string as the key to avoid transient lookup issues
-		set_transient('trustap_oauth_state_' . $state, $state, 15 * 60);
-
-		$scope = urlencode('openid p2p_tx:offline_create_join p2p_tx:offline_accept_deposit p2p_tx:offline_cancel p2p_tx:offline_confirm_handover');
-
-		$realm = $test_mode ? 'trustap-stage' : 'trustap';
-
-		$auth_url = sprintf(
-			'https://sso.trustap.com/auth/realms/%s/protocol/openid-connect/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s',
-			$realm,
-			$client_id,
-			$redirect_uri,
-			$scope,
-			$state
-		);
-
-		return $auth_url;
+		return $this->trustap_api->get_auth_url();
 	}
 	/**
 	 * Register the stylesheets for the public-facing side of the site.

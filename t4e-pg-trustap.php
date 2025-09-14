@@ -75,6 +75,7 @@ register_deactivation_hook(__FILE__, 'deactivate_t4e_pg_trustap');
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
+require plugin_dir_path(__FILE__) . 'includes/class-wcfm-trustap-api.php';
 require plugin_dir_path(__FILE__) . 'includes/class-t4e-pg-trustap.php';
 
 
