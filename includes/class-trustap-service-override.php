@@ -687,6 +687,7 @@ class Service_Override
             );
 
             $result = wp_remote_post($url, $args);
+
             if (is_wp_error($result)) {
                 throw new Exception(
                     __('Please try again.', 'trustap-payment-gateway'),
@@ -709,8 +710,8 @@ class Service_Override
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Basic ' .
-                    //base64_encode($this->trustap_api->client_id . ':' . ''),
-                    base64_encode('8cb56f8b-ee28-4378-8ff0-06d674a18fe2' . ':' . ''),
+                    base64_encode($this->api_key . ':' . ''),
+                // base64_encode('8cb56f8b-ee28-4378-8ff0-06d674a18fe2' . ':' . ''),
                 'Trustap-User' => $user_id
             ),
             'body' => json_encode($data)

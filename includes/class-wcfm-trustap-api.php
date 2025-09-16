@@ -1,27 +1,35 @@
 <?php
-class WCFM_Trustap_API {
+class WCFM_Trustap_API
+{
     private $settings;
     private $test_mode;
     private $environment;
     public $client_id;
     private $client_secret;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->settings = get_option('woocommerce_trustap_settings', array());
         $this->test_mode = (isset($this->settings['testmode']) && $this->settings['testmode'] === 'yes');
         $this->environment = $this->test_mode ? 'test' : 'live';
         $this->client_id = get_option("trustap_{$this->environment}_client_id");
         $this->client_secret = get_option("trustap_{$this->environment}_client_secret");
+
+        $logger = wc_get_logger();
+
+        $logger->info('woocommerce_trustap_settings - ' . print_r($this->settings), ['source' => 'debugging']);
     }
 
-    private function get_sso_url() {
+    private function get_sso_url()
+    {
         $realm = $this->test_mode ? 'trustap-stage' : 'trustap';
         return sprintf('https://sso.trustap.com/auth/realms/%s/protocol/openid-connect', $realm);
     }
 
-    public function get_auth_url() {
+    public function get_auth_url()
+    {
         $redirect_uri = urlencode(admin_url('admin-ajax.php?action=wcfm_trustap_oauth_callback'));
-        
+
         $user_id = get_current_user_id();
         $state_data = json_encode(['user_id' => $user_id, 'random' => bin2hex(random_bytes(8))]);
         $state = base64_encode($state_data);
@@ -42,7 +50,8 @@ class WCFM_Trustap_API {
         return $auth_url;
     }
 
-    public function handle_oauth_callback($code, $state) {
+    public function handle_oauth_callback($code, $state)
+    {
         $logger = wc_get_logger();
         $context = array('source' => 't4e-pg-trustap');
 
@@ -93,7 +102,7 @@ class WCFM_Trustap_API {
                 return true;
             }
         }
-        
+
         return false;
     }
 }
