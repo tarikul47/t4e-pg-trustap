@@ -1,9 +1,5 @@
 <?php
 
-
-
-use Exception;
-
 use Trustap\PaymentGateway\Helper\Validator;
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
