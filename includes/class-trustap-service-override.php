@@ -22,7 +22,6 @@ class Service_Override
 
     public $seller_id;
 
-    public $api_key;
 
     public $username;
 
@@ -611,7 +610,7 @@ class Service_Override
 
                 'Authorization' => 'Basic ' .
 
-                    base64_encode($this->api_key . ':' . '')
+                    base64_encode($this->trustap_api->api_key . ':' . '')
 
             )
 
@@ -710,7 +709,7 @@ class Service_Override
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Basic ' .
-                    base64_encode($this->$this->trustap_api->api_key . ':' . ''),
+                    base64_encode($this->trustap_api->api_key . ':' . ''),
                 // base64_encode('8cb56f8b-ee28-4378-8ff0-06d674a18fe2' . ':' . ''),
                 'Trustap-User' => $user_id
             ),
