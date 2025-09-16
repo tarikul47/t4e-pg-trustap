@@ -115,6 +115,8 @@ class T4e_Pg_Trustap
 		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-t4e-pg-trustap-i18n.php';
 
 
+		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-trustap-service-override.php';
+		
 		// Trustap gateway override for process payment 
 		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/gateways/class-override-gateway-trustap.php';
 

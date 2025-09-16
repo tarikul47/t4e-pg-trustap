@@ -14,7 +14,7 @@ class Override_Gateway_Trustap extends Trustap_Gateway
     public function __construct()
     {
         parent::__construct();
-       // $my_custom_service = new Service_Override($this);
+        $this->my_custom_service = new Service_Override($this);
 
         // WooCommerce logger
         $this->logger = wc_get_logger();
