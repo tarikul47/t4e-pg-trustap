@@ -460,7 +460,7 @@ class Service_Override
 
         if (isset($this->wc_payment_gateway->confirm_handover) && $this->wc_payment_gateway->confirm_handover === 'manually') {
 
-            $order->update_status('handoverpending');
+          //  $order->update_status('handoverpending');
 
         } else {
 
@@ -659,50 +659,11 @@ class Service_Override
     }
 
 
-    /*
-        public function post_request($endpoint, $user_id, $data, $access_token = null)
-        {
-            $url = $this->trustap_api_url . $endpoint;
-            $headers = array(
-                'Content-Type' => 'application/json',
-            );
-
-            $logger = wc_get_logger();
-
-            $logger->info("Custom plugin post_request - 674: {$access_token}", ['source' => 'trustap-child']);
-
-            // Check if an access token is provided for full user authentication
-            if (!empty($access_token)) {
-                $headers['Authorization'] = 'Bearer ' . $access_token;
-            } else {
-                // Fallback to Basic Auth for guest users
-                $headers['Authorization'] = 'Basic ' . base64_encode($this->api_key . ':' . '');
-                $headers['Trustap-User'] = $user_id; // Trustap-User header is only for guest users
-            }
-
-            $args = array(
-                'headers' => $headers,
-                'body' => json_encode($data)
-            );
-
-            $result = wp_remote_post($url, $args);
-
-            if (is_wp_error($result)) {
-                throw new Exception(
-                    __('Please try again.', 'trustap-payment-gateway'),
-                    'error'
-                );
-            }
-            return $result;
-        }
-
-        */
-
     public function post_request($endpoint, $user_id, $data, $access_token = null)
     {
-        $logger = wc_get_logger();
+        //  $logger = wc_get_logger();
 
-        $logger->info("Custom plugin post_request------------", ['source' => 'trustap-child']);
+        //  $logger->info("Custom plugin post_request------------", ['source' => 'trustap-child']);
 
         $url = $this->trustap_api_url . $endpoint;
         $args = array(
@@ -710,12 +671,12 @@ class Service_Override
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Basic ' .
                     base64_encode($this->trustap_api->api_key . ':' . ''),
-                // base64_encode('8cb56f8b-ee28-4378-8ff0-06d674a18fe2' . ':' . ''),
                 'Trustap-User' => $user_id
             ),
             'body' => json_encode($data)
         );
         $result = wp_remote_post($url, $args);
+
         if (is_wp_error($result)) {
             throw new Exception(
                 __('Please try again.', 'trustap-payment-gateway'),
