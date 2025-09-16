@@ -702,14 +702,15 @@ class Service_Override
     {
         $logger = wc_get_logger();
 
-        $logger->info("Custom plugin post_request", ['source' => 'trustap-child']);
+        $logger->info("Custom plugin post_request------------", ['source' => 'trustap-child']);
 
         $url = $this->trustap_api_url . $endpoint;
         $args = array(
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Basic ' .
-                    base64_encode($this->trustap_api->client_id . ':' . ''),
+                    //base64_encode($this->trustap_api->client_id . ':' . ''),
+                    base64_encode('8cb56f8b-ee28-4378-8ff0-06d674a18fe2' . ':' . ''),
                 'Trustap-User' => $user_id
             ),
             'body' => json_encode($data)
