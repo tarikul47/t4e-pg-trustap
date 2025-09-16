@@ -10,6 +10,7 @@ class WCFM_Trustap_API
 
     public function __construct()
     {
+        //  $mode = $GLOBALS['testmode'] ? 'test' : 'live';
         $this->settings = get_option('woocommerce_trustap_settings', array());
         $this->test_mode = (isset($this->settings['testmode']) && $this->settings['testmode'] === 'yes');
         $this->environment = $this->test_mode ? 'test' : 'live';
@@ -32,10 +33,10 @@ class WCFM_Trustap_API
         $logger = wc_get_logger();
 
         // Always cast settings into a readable string for logs
-        $logger->info(
-            'woocommerce_trustap_settings: ' . wp_json_encode($this->api_key, JSON_PRETTY_PRINT),
-            array('source' => 'trustap')
-        );
+        // $logger->info(
+        //     'woocommerce_trustap_settings: ' . wp_json_encode($this->api_key, JSON_PRETTY_PRINT),
+        //     array('source' => 'trustap')
+        // );
     }
 
     private function get_sso_url()

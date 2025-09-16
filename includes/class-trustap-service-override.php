@@ -41,21 +41,7 @@ class Service_Override
 
         $this->trustap_api_url = UriEnumerator::API_URL();
 
-        //  $mode = $GLOBALS['testmode'] ? 'test' : 'live';
-
-        // $this->seller_id = get_option("trustap_{$mode}_user_id");
-
-        // $this->api_key = get_option("trustap_{$mode}_api_key");
-
-        // $this->username = get_option("trustap_{$mode}_username");
-
-        // $this->password = get_option("trustap_{$mode}_password");
-
-
-
         $this->wc_payment_gateway = $gateway; // Assuming this is the main gateway class
-
-
 
         remove_all_actions('woocommerce_api_trustap_webhook');
 
@@ -67,20 +53,16 @@ class Service_Override
 
     }
 
-
-
-
-
     public function child_trustap_webhook()
     {
 
         $logger = wc_get_logger();
 
-        $logger->info('Child webhook triggered ✅', ['source' => 'trustap-child']);
+       // $logger->info('Child webhook triggered ✅', ['source' => 'trustap-child']);
 
         $state = isset($_GET['state']) ? $_GET['state'] : '';
 
-        $logger->info('State parameter: ' . $state, ['source' => 'trustap-child']);
+      //  $logger->info('State parameter: ' . $state, ['source' => 'trustap-child']);
 
         // Here you can add custom service logic if needed
 
@@ -88,26 +70,24 @@ class Service_Override
 
     }
 
-
-
     public function child_trustap_custom_webhook()
     {
 
         $logger = wc_get_logger();
 
-        $logger->info('Child webhook triggered ✅', ['source' => 'trustap-child']);
+       // $logger->info('Child webhook triggered ✅', ['source' => 'trustap-child']);
 
 
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
-            $logger->info('Handling GET request for P2P webhook.', ['source' => 'trustap-child']);
+          //  $logger->info('Handling GET request for P2P webhook.', ['source' => 'trustap-child']);
 
             $this->p2p_webhook_get();
 
         } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-            $logger->info('Handling POST request for P2P webhook.', ['source' => 'trustap-child']);
+          //  $logger->info('Handling POST request for P2P webhook.', ['source' => 'trustap-child']);
 
             $this->p2p_webhook_post();
 
@@ -116,8 +96,6 @@ class Service_Override
         die();
 
     }
-
-
 
     private function p2p_webhook_get()
     {
@@ -204,8 +182,6 @@ class Service_Override
 
     }
 
-
-
     private function p2p_webhook_post()
     {
 
@@ -229,7 +205,7 @@ class Service_Override
 
             $logger = wc_get_logger();
 
-            $logger->info("Received P2P POST webhook with code: {$body_webhook->code}", ['source' => 'trustap-child']);
+         //   $logger->info("Received P2P POST webhook with code: {$body_webhook->code}", ['source' => 'trustap-child']);
 
 
 
@@ -311,8 +287,6 @@ class Service_Override
 
     }
 
-
-
     private function is_deposit_paid($transaction_id)
     {
 
@@ -330,54 +304,31 @@ class Service_Override
 
     }
 
-
-
     private function get_transaction($type, $transaction_id)
     {
-
         $prefix = ($type === 'p2p') ? 'p2p' : '';
-
         try {
-
-            $response = $this->get_request(
-
+            $response = $this->controller->get_request(
                 "{$prefix}/transactions/{$transaction_id}",
-
                 ''
-
             );
 
         } catch (Exception $error) {
-
             wc_add_notice($error);
-
             return false;
-
         }
 
-
-
         $body = json_decode($response['body'], true);
-
         return $body;
-
     }
-
-
 
     private function accept_deposit($transaction_id, $order)
     {
-
         $logger = wc_get_logger();
-
         try {
-
             $seller_id = '';
-
             foreach ($order->get_items() as $item) {
-
                 $product = $item->get_product();
-
                 if ($product) {
                     $seller_id = get_post_field('post_author', $product->get_id());
                     break;
@@ -391,26 +342,26 @@ class Service_Override
             $seller_trustap_id = get_user_meta($seller_id, 'trustap_user_id', true);
             $access_token = get_user_meta($seller_id, 'trustap_access_token', true);
 
-            $logger->info(
+            // $logger->info(
 
-                'accept_deposit request: ' . print_r([
-                    'transaction_id' => $transaction_id,
-                    'seller_id' => $seller_id,
-                    'seller_trustap_id' => $seller_trustap_id,
-                    'access_token' => $access_token,
-                    'order_id' => $order->get_id()
-                ], true),
+            //     'accept_deposit request: ' . print_r([
+            //         'transaction_id' => $transaction_id,
+            //         'seller_id' => $seller_id,
+            //         'seller_trustap_id' => $seller_trustap_id,
+            //         'access_token' => $access_token,
+            //         'order_id' => $order->get_id()
+            //     ], true),
 
-                ['source' => 'trustap-child']
+            //     ['source' => 'trustap-child']
 
-            );
+            // );
 
             $result = $this->controller->post_request(
                 "p2p/transactions/{$transaction_id}/accept_deposit",
                 $seller_trustap_id,
                 '',
             );
-            $logger->info('accept_deposit response: ' . print_r($result, true), ['source' => 'trustap-child']);
+         //   $logger->info('accept_deposit response: ' . print_r($result, true), ['source' => 'trustap-child']);
 
         } catch (Exception $exception) {
 
@@ -419,8 +370,6 @@ class Service_Override
             return wp_redirect($this->wc_payment_gateway->get_return_url($order));
         }
     }
-
-
 
     private function handle_handover_confirmation($transaction_id, $order)
     {
@@ -436,8 +385,6 @@ class Service_Override
         }
 
     }
-
-
 
     public function confirm_handover($transaction_id, $order)
     {
@@ -560,100 +507,6 @@ class Service_Override
 
     }
 
-
-
-    // START: Copied methods from AbstractController
-
-
-
-    public function get_request($endpoint, $data)
-    {
-
-        $args = array(
-
-            'headers' => array(
-
-                'Content-Type' => 'application/json',
-
-                'Authorization' => 'Basic ' .
-
-                    base64_encode($this->trustap_api->api_key . ':' . '')
-
-            )
-
-        );
-
-        $url = $this->trustap_api_url . $endpoint . '?';
-
-        if ($data) {
-
-            $data_length = count($data);
-
-            $i = 0;
-
-            foreach ($data as $key => $value) {
-
-                $i++;
-
-                $url .= $key . '=' . $value;
-
-                if ($i != $data_length) {
-
-                    $url .= '&';
-
-                }
-
-            }
-
-        }
-
-        $result = wp_remote_get($url, $args);
-
-        if (is_wp_error($result)) {
-
-            throw new Exception(
-
-                __('Please try again.', 'trustap-payment-gateway'),
-
-                'error'
-
-            );
-
-        }
-
-        return $result;
-
-    }
-
-    /*
-    public function post_request($endpoint, $user_id, $data, $access_token = null)
-    {
-        //  $logger = wc_get_logger();
-
-        //  $logger->info("Custom plugin post_request------------", ['source' => 'trustap-child']);
-
-        $url = $this->trustap_api_url . $endpoint;
-        $args = array(
-            'headers' => array(
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Basic ' .
-                    base64_encode($this->trustap_api->api_key . ':' . ''),
-                'Trustap-User' => $user_id
-            ),
-            'body' => json_encode($data)
-        );
-        $result = wp_remote_post($url, $args);
-
-        if (is_wp_error($result)) {
-            throw new Exception(
-                __('Please try again.', 'trustap-payment-gateway'),
-                'error'
-            );
-        }
-        return $result;
-    }
-
-    */
 
 }
 

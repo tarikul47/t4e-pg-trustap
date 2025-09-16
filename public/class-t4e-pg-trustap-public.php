@@ -168,7 +168,7 @@ class T4e_Pg_Trustap_Public
 		$logger = wc_get_logger();
 		$context = array('source' => 't4e-pg-trustap');
 
-		$logger->info('OAuth callback initiated.', $context);
+		//$logger->info('OAuth callback initiated.', $context);
 
 		if (!is_user_logged_in()) {
 			$logger->error('User is not logged in. Aborting.', $context);
@@ -186,7 +186,7 @@ class T4e_Pg_Trustap_Public
 				$redirect_url = isset($_SESSION['trustap_redirect_url']) ? $_SESSION['trustap_redirect_url'] : get_wcfm_url();
 				unset($_SESSION['trustap_redirect_url']);
 
-				$logger->info('Redirecting to: ' . $redirect_url, $context);
+				//$logger->info('Redirecting to: ' . $redirect_url, $context);
 				wp_redirect($redirect_url);
 				exit;
 			} else {
