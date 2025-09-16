@@ -3,7 +3,7 @@ class WCFM_Trustap_API {
     private $settings;
     private $test_mode;
     private $environment;
-    private $client_id;
+    public $client_id;
     private $client_secret;
 
     public function __construct() {

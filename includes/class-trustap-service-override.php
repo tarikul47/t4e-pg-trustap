@@ -18,6 +18,7 @@ class Service_Override
     public $namespace;
 
     public $trustap_api_url;
+    public $trustap_api;
 
     public $seller_id;
 
@@ -33,6 +34,8 @@ class Service_Override
     {
 
         // Initialize properties from AbstractController's constructor
+
+        $this->trustap_api = new WCFM_Trustap_API();
 
         $this->namespace = 'trustap_payment_gateway';
 
@@ -657,32 +660,60 @@ class Service_Override
     }
 
 
+    /*
+        public function post_request($endpoint, $user_id, $data, $access_token = null)
+        {
+            $url = $this->trustap_api_url . $endpoint;
+            $headers = array(
+                'Content-Type' => 'application/json',
+            );
+
+            $logger = wc_get_logger();
+
+            $logger->info("Custom plugin post_request - 674: {$access_token}", ['source' => 'trustap-child']);
+
+            // Check if an access token is provided for full user authentication
+            if (!empty($access_token)) {
+                $headers['Authorization'] = 'Bearer ' . $access_token;
+            } else {
+                // Fallback to Basic Auth for guest users
+                $headers['Authorization'] = 'Basic ' . base64_encode($this->api_key . ':' . '');
+                $headers['Trustap-User'] = $user_id; // Trustap-User header is only for guest users
+            }
+
+            $args = array(
+                'headers' => $headers,
+                'body' => json_encode($data)
+            );
+
+            $result = wp_remote_post($url, $args);
+            if (is_wp_error($result)) {
+                throw new Exception(
+                    __('Please try again.', 'trustap-payment-gateway'),
+                    'error'
+                );
+            }
+            return $result;
+        }
+
+        */
 
     public function post_request($endpoint, $user_id, $data, $access_token = null)
     {
-        $url = $this->trustap_api_url . $endpoint;
-        $headers = array(
-            'Content-Type' => 'application/json',
-        );
-
         $logger = wc_get_logger();
 
-        $logger->error("Custom plugin post_request - 674: {$access_token}", ['source' => 'trustap-child']);
+        $logger->info("Custom plugin post_request", ['source' => 'trustap-child']);
 
-        // Check if an access token is provided for full user authentication
-        if (!empty($access_token)) {
-            $headers['Authorization'] = 'Bearer ' . $access_token;
-        } else {
-            // Fallback to Basic Auth for guest users
-            $headers['Authorization'] = 'Basic ' . base64_encode($this->api_key . ':' . '');
-            $headers['Trustap-User'] = $user_id; // Trustap-User header is only for guest users
-        }
-
+        $url = $this->trustap_api_url . $endpoint;
         $args = array(
-            'headers' => $headers,
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Basic ' .
+                    base64_encode($this->trustap_api->client_id . ':' . ''),
+                'Trustap-User' => $user_id
+            ),
             'body' => json_encode($data)
         );
-
         $result = wp_remote_post($url, $args);
         if (is_wp_error($result)) {
             throw new Exception(
