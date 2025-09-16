@@ -12,14 +12,27 @@ class WCFM_Trustap_API
         $this->settings = get_option('woocommerce_trustap_settings', array());
         $this->test_mode = (isset($this->settings['testmode']) && $this->settings['testmode'] === 'yes');
         $this->environment = $this->test_mode ? 'test' : 'live';
+
+        /*
+        * update_option("trustap_{$environment}_username", $credentials->Username);
+        * update_option("trustap_{$environment}_password", $credentials->Password);
+
+        * update_option("trustap_{$environment}_api_key", $credentials->apiKey);
+        * update_option("trustap_{$environment}_client_id", $credentials->clientID);
+        * update_option("trustap_{$environment}_client_secret", $credentials->clientSecret);
+        * update_option("trustap_{$environment}_provider_url", $provider_url);
+        */
+
+        $this->api_key = get_option("trustap_{$this->environment}_api_key");
         $this->client_id = get_option("trustap_{$this->environment}_client_id");
         $this->client_secret = get_option("trustap_{$this->environment}_client_secret");
+        $this->provider_url = get_option("trustap_{$this->environment}_provider_url");
 
         $logger = wc_get_logger();
 
         // Always cast settings into a readable string for logs
         $logger->info(
-            'woocommerce_trustap_settings: ' . wp_json_encode($this->settings, JSON_PRETTY_PRINT),
+            'woocommerce_trustap_settings: ' . wp_json_encode($this->api_key, JSON_PRETTY_PRINT),
             array('source' => 'trustap')
         );
     }
