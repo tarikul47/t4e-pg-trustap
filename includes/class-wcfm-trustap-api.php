@@ -17,7 +17,11 @@ class WCFM_Trustap_API
 
         $logger = wc_get_logger();
 
-        $logger->info('woocommerce_trustap_settings - ' . print_r($this->settings), ['source' => 'debugging']);
+        // Always cast settings into a readable string for logs
+        $logger->info(
+            'woocommerce_trustap_settings: ' . wp_json_encode($this->settings, JSON_PRETTY_PRINT),
+            array('source' => 'trustap')
+        );
     }
 
     private function get_sso_url()
