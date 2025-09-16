@@ -41,15 +41,15 @@ class Service_Override
 
         $this->trustap_api_url = UriEnumerator::API_URL();
 
-        $mode = $GLOBALS['testmode'] ? 'test' : 'live';
+        //  $mode = $GLOBALS['testmode'] ? 'test' : 'live';
 
-        $this->seller_id = get_option("trustap_{$mode}_user_id");
+        // $this->seller_id = get_option("trustap_{$mode}_user_id");
 
-        $this->api_key = get_option("trustap_{$mode}_api_key");
+        // $this->api_key = get_option("trustap_{$mode}_api_key");
 
-        $this->username = get_option("trustap_{$mode}_username");
+        // $this->username = get_option("trustap_{$mode}_username");
 
-        $this->password = get_option("trustap_{$mode}_password");
+        // $this->password = get_option("trustap_{$mode}_password");
 
 
 
@@ -710,7 +710,7 @@ class Service_Override
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Basic ' .
-                    base64_encode($this->api_key . ':' . ''),
+                    base64_encode($this->$this->trustap_api->api_key . ':' . ''),
                 // base64_encode('8cb56f8b-ee28-4378-8ff0-06d674a18fe2' . ':' . ''),
                 'Trustap-User' => $user_id
             ),
