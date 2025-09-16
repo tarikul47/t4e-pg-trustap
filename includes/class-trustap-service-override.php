@@ -15,6 +15,7 @@ class Service_Override
 
     private $wc_payment_gateway;
 
+    public $controller;
     public $namespace;
 
     public $trustap_api_url;
@@ -29,11 +30,11 @@ class Service_Override
 
 
 
-    public function __construct($gateway)
+    public function __construct($gateway, $controller)
     {
 
         // Initialize properties from AbstractController's constructor
-
+        $this->controller = $controller;
         $this->trustap_api = new WCFM_Trustap_API();
 
         $this->namespace = 'trustap_payment_gateway';
@@ -378,79 +379,45 @@ class Service_Override
                 $product = $item->get_product();
 
                 if ($product) {
-
                     $seller_id = get_post_field('post_author', $product->get_id());
-
                     break;
-
                 }
-
             }
-
-
 
             if (empty($seller_id)) {
-
                 throw new Exception('Seller ID not found for order #' . $order->get_id());
-
             }
 
-
-
             $seller_trustap_id = get_user_meta($seller_id, 'trustap_user_id', true);
-
             $access_token = get_user_meta($seller_id, 'trustap_access_token', true);
-
-
 
             $logger->info(
 
                 'accept_deposit request: ' . print_r([
-
                     'transaction_id' => $transaction_id,
-
                     'seller_id' => $seller_id,
-
                     'seller_trustap_id' => $seller_trustap_id,
-
                     'access_token' => $access_token,
-
                     'order_id' => $order->get_id()
-
                 ], true),
 
                 ['source' => 'trustap-child']
 
             );
 
-
-
-            $result = $this->post_request(
-
+            $result = $this->controller->post_request(
                 "p2p/transactions/{$transaction_id}/accept_deposit",
-
                 $seller_trustap_id,
-
                 '',
-
-                $access_token
-
             );
-
             $logger->info('accept_deposit response: ' . print_r($result, true), ['source' => 'trustap-child']);
-
-
 
         } catch (Exception $exception) {
 
             $logger->error('accept_deposit error: ' . $exception->getMessage(), ['source' => 'trustap-child']);
-
             $order->add_order_note(__('Accept deposit manually.', 'trustap-payment-gateway'), false);
-
             return wp_redirect($this->wc_payment_gateway->get_return_url($order));
-
         }
-
     }
 
 
@@ -460,7 +427,7 @@ class Service_Override
 
         if (isset($this->wc_payment_gateway->confirm_handover) && $this->wc_payment_gateway->confirm_handover === 'manually') {
 
-          //  $order->update_status('handoverpending');
+            $order->update_status('handoverpending');
 
         } else {
 
@@ -658,7 +625,7 @@ class Service_Override
 
     }
 
-
+    /*
     public function post_request($endpoint, $user_id, $data, $access_token = null)
     {
         //  $logger = wc_get_logger();
@@ -685,6 +652,8 @@ class Service_Override
         }
         return $result;
     }
+
+    */
 
 }
 

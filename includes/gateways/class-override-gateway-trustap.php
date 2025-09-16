@@ -3,18 +3,20 @@
 if (!defined('ABSPATH')) {
     exit;
 }
-
+use Trustap\PaymentGateway\Controller\AbstractController;
 use Trustap\PaymentGateway\Gateway as Trustap_Gateway;
 use Trustap\PaymentGateway\Helper\Validator;
 
 class Override_Gateway_Trustap extends Trustap_Gateway
 {
     protected $logger;
+    protected $controller;
 
     public function __construct()
     {
         parent::__construct();
-        $this->my_custom_service = new Service_Override($this);
+        $this->controller = new AbstractController('trustap/v1');
+        $this->my_custom_service = new Service_Override($this, $this->controller);
 
         // WooCommerce logger
         $this->logger = wc_get_logger();
