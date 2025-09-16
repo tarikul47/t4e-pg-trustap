@@ -114,10 +114,9 @@ class T4e_Pg_Trustap
 		 */
 		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-t4e-pg-trustap-i18n.php';
 
-		/**
-		 * WCFM gateway class 
-		 */
-		//require_once plugin_dir_path(dirname(__FILE__)) . 'includes/gateways/wcfm_gateway_trustap.php';
+
+		// Trustap gateway override for process payment 
+		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/gateways/class-override-gateway-trustap.php';
 
 
 
@@ -139,7 +138,7 @@ class T4e_Pg_Trustap
 	public function load_wcfm_gateway()
 	{
 		if (class_exists('WCFMmp_Abstract_Gateway')) {
-			require_once plugin_dir_path(dirname(__FILE__)) . 'includes/gateways/wcfm_gateway_trustap.php';
+			require_once plugin_dir_path(dirname(__FILE__)) . 'includes/gateways/class-wcfm-gateway-trustap.php';
 		}
 	}
 
@@ -175,7 +174,10 @@ class T4e_Pg_Trustap
 
 		// Register your custom payment gateway with WCFM Marketplace
 		$this->loader->add_filter('wcfm_marketplace_withdrwal_payment_methods', $plugin_admin, 'wcfmmp_custom_pg');
+		$this->loader->add_filter('woocommerce_payment_gateways', $plugin_admin, 'override_trustap_gateway', 999);
+		//	$this->loader->add_action('user_register', $plugin_admin, 'create_trustap_guest_user_on_registration', 10, 1);
 
+		// add_filter('woocommerce_payment_gateways', [$this, 'override_trustap_gateway'], 999);
 
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');

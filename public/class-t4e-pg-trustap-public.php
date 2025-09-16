@@ -156,7 +156,7 @@ class T4e_Pg_Trustap_Public
 		delete_user_meta($user_id, 'trustap_access_token');
 		delete_user_meta($user_id, 'trustap_refresh_token');
 
-		$redirect_url = home_url($_SERVER['REQUEST_URI']) . '#wcfm_settings_form_payment_head';
+		$redirect_url = get_wcfm_settings_url() . '#wcfm_settings_form_payment_head';
 
 		wp_redirect($redirect_url);
 		exit;
