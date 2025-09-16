@@ -33,6 +33,9 @@ class Override_Gateway_Trustap extends Trustap_Gateway
         $testmode = $test_mode;
         $action_url = \Trustap\PaymentGateway\Enumerators\Uri::ACTION_PAGE_URL();
 
+        $this->log('Starting process_payment by process payment in our custom plugin');
+
+
         $this->log('Starting process_payment for Order ID: ' . $order_id);
 
         global $woocommerce;
