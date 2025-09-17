@@ -58,21 +58,23 @@ class Service_Override
     public function t4e_add_confirm_handover_meta_box($post_type, $post)
     {
         // global $post;
-        $order = wc_get_order($post->ID);
+        // $order = wc_get_order($post->ID);
 
 
-        if (!$order) {
-            return;
-        }
-        if (strpos($order->get_meta('model'), "p2p/") === false) {
-            return;
-        }
-        if ($order->get_payment_method() !== 'trustap') {
-            return;
-        }
-        if (!$order->has_status('handoverpending')) {
-            return;
-        }
+        // if (!$order) {
+        //     return;
+        // }
+        // if (strpos($order->get_meta('model'), "p2p/") === false) {
+        //     return;
+        // }
+        // if ($order->get_payment_method() !== 'trustap') {
+        //     return;
+        // }
+        // if (!$order->has_status('handoverpending')) {
+        //     return;
+        // }
+
+
         add_meta_box(
             't4e-trustap-confirm-handover-meta-box',
             'Trustap Handover',
