@@ -51,13 +51,13 @@ class Service_Override
 
         add_action('woocommerce_api_trustap_webhook_raju', array($this, 'child_trustap_custom_webhook'));
 
-        add_action('add_meta_boxes', array($this, 't4e_add_confirm_handover_meta_box', 10, 2));
+        add_action('add_meta_boxes', array($this, 't4e_add_confirm_handover_meta_box'), 10, 2);
 
     }
 
     public function t4e_add_confirm_handover_meta_box($post_type, $post)
     {
-       // global $post;
+        // global $post;
         $order = wc_get_order($post->ID);
 
 
@@ -92,8 +92,8 @@ class Service_Override
             'confirm_handover_url' => UriEnumerator::CONFIRM_HANDOVER_URL(),
             'nonce' => wp_create_nonce('wp_rest')
         ];
-      //  echo $template->render('settings', 'ConfirmHandover', $args);
-      echo "Gellllo";
+        //  echo $template->render('settings', 'ConfirmHandover', $args);
+        echo "Gellllo";
     }
 
     public function child_trustap_webhook()
