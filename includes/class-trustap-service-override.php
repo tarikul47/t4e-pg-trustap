@@ -1,12 +1,11 @@
 <?php
+use Trustap\PaymentGateway\Helper\Template;
 
 use Trustap\PaymentGateway\Helper\Validator;
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
 
 use Trustap\PaymentGateway\Enumerators\Uri as UriEnumerator;
-
-
 
 
 
@@ -32,7 +31,6 @@ class Service_Override
 
     public function __construct($gateway, $controller)
     {
-
         // Initialize properties from AbstractController's constructor
         $this->controller = $controller;
         $this->trustap_api = new WCFM_Trustap_API();
@@ -57,27 +55,28 @@ class Service_Override
 
     public function t4e_add_confirm_handover_meta_box($post_type, $post)
     {
+
         // global $post;
-        // $order = wc_get_order($post->ID);
+        $order = wc_get_order($post->ID);
 
+        var_dump($order);
 
-        // if (!$order) {
-        //     return;
-        // }
-        // if (strpos($order->get_meta('model'), "p2p/") === false) {
-        //     return;
-        // }
-        // if ($order->get_payment_method() !== 'trustap') {
-        //     return;
-        // }
-        // if (!$order->has_status('handoverpending')) {
-        //     return;
-        // }
-
+        if (!$order) {
+            return;
+        }
+        if (strpos($order->get_meta('model'), "p2p/") === false) {
+            return;
+        }
+        if ($order->get_payment_method() !== 'trustap') {
+            return;
+        }
+        if (!$order->has_status('handoverpending')) {
+            return;
+        }
 
         add_meta_box(
-            't4e-trustap-confirm-handover-meta-box',
-            'Trustap Handover',
+            't4e-trustap-confirm-handover-meta-box_ffnnn',
+            'Trustap Handover Custopmmm',
             array($this, 't4e_confirm_handover_meta_box'),
             'woocommerce_page_wc-orders',
             'side',
@@ -94,8 +93,7 @@ class Service_Override
             'confirm_handover_url' => UriEnumerator::CONFIRM_HANDOVER_URL(),
             'nonce' => wp_create_nonce('wp_rest')
         ];
-        //  echo $template->render('settings', 'ConfirmHandover', $args);
-        echo "Gellllo";
+        echo $template->render('settings', 'ConfirmHandover', $args);
     }
 
     public function child_trustap_webhook()
@@ -229,7 +227,6 @@ class Service_Override
 
     private function p2p_webhook_post()
     {
-
         try {
 
             $request_body = file_get_contents('php://input');
@@ -329,7 +326,6 @@ class Service_Override
             wc_add_notice(__('An error occurred. Please try again later.', 'trustap-payment-gateway'), 'error');
 
         }
-
     }
 
     private function is_deposit_paid($transaction_id)
@@ -546,7 +542,5 @@ class Service_Override
         return wc_get_order($order_id);
 
     }
-
-
 }
 
