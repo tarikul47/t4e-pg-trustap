@@ -55,9 +55,9 @@ class Service_Override
 
     }
 
-    public function t4e_add_confirm_handover_meta_box()
+    public function t4e_add_confirm_handover_meta_box($post_type, $post)
     {
-        global $post;
+       // global $post;
         $order = wc_get_order($post->ID);
 
 
