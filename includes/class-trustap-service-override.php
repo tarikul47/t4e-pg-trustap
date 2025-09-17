@@ -76,7 +76,7 @@ class Service_Override
         add_meta_box(
             't4e-trustap-confirm-handover-meta-box',
             'Trustap Handover',
-            array($this, 'confirm_handover_meta_box'),
+            array($this, 't4e_confirm_handover_meta_box'),
             'woocommerce_page_wc-orders',
             'side',
             'high'
@@ -84,7 +84,7 @@ class Service_Override
     }
 
 
-    public function confirm_handover_meta_box()
+    public function t4e_confirm_handover_meta_box()
     {
         $template = new Template();
         $args = [
@@ -93,7 +93,7 @@ class Service_Override
             'nonce' => wp_create_nonce('wp_rest')
         ];
       //  echo $template->render('settings', 'ConfirmHandover', $args);
-      echo "--------------------";
+      echo "Gellllo";
     }
 
     public function child_trustap_webhook()
