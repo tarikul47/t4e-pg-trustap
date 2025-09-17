@@ -51,6 +51,49 @@ class Service_Override
 
         add_action('woocommerce_api_trustap_webhook_raju', array($this, 'child_trustap_custom_webhook'));
 
+        add_action('add_meta_boxes', array($this, 't4e_add_confirm_handover_meta_box', 10, 2));
+
+    }
+
+    public function t4e_add_confirm_handover_meta_box()
+    {
+        global $post;
+        $order = wc_get_order($post->ID);
+
+
+        if (!$order) {
+            return;
+        }
+        if (strpos($order->get_meta('model'), "p2p/") === false) {
+            return;
+        }
+        if ($order->get_payment_method() !== 'trustap') {
+            return;
+        }
+        if (!$order->has_status('handoverpending')) {
+            return;
+        }
+        add_meta_box(
+            't4e-trustap-confirm-handover-meta-box',
+            'Trustap Handover',
+            array($this, 'confirm_handover_meta_box'),
+            'woocommerce_page_wc-orders',
+            'side',
+            'high'
+        );
+    }
+
+
+    public function confirm_handover_meta_box()
+    {
+        $template = new Template();
+        $args = [
+            'icon' => TRUSTAP_IMAGE_URL . "handshake-simple-solid.svg",
+            'confirm_handover_url' => UriEnumerator::CONFIRM_HANDOVER_URL(),
+            'nonce' => wp_create_nonce('wp_rest')
+        ];
+      //  echo $template->render('settings', 'ConfirmHandover', $args);
+      echo "--------------------";
     }
 
     public function child_trustap_webhook()
@@ -58,11 +101,11 @@ class Service_Override
 
         $logger = wc_get_logger();
 
-       // $logger->info('Child webhook triggered ✅', ['source' => 'trustap-child']);
+        // $logger->info('Child webhook triggered ✅', ['source' => 'trustap-child']);
 
         $state = isset($_GET['state']) ? $_GET['state'] : '';
 
-      //  $logger->info('State parameter: ' . $state, ['source' => 'trustap-child']);
+        //  $logger->info('State parameter: ' . $state, ['source' => 'trustap-child']);
 
         // Here you can add custom service logic if needed
 
@@ -75,19 +118,19 @@ class Service_Override
 
         $logger = wc_get_logger();
 
-       // $logger->info('Child webhook triggered ✅', ['source' => 'trustap-child']);
+        // $logger->info('Child webhook triggered ✅', ['source' => 'trustap-child']);
 
 
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
-          //  $logger->info('Handling GET request for P2P webhook.', ['source' => 'trustap-child']);
+            //  $logger->info('Handling GET request for P2P webhook.', ['source' => 'trustap-child']);
 
             $this->p2p_webhook_get();
 
         } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-          //  $logger->info('Handling POST request for P2P webhook.', ['source' => 'trustap-child']);
+            //  $logger->info('Handling POST request for P2P webhook.', ['source' => 'trustap-child']);
 
             $this->p2p_webhook_post();
 
@@ -205,7 +248,7 @@ class Service_Override
 
             $logger = wc_get_logger();
 
-         //   $logger->info("Received P2P POST webhook with code: {$body_webhook->code}", ['source' => 'trustap-child']);
+            //   $logger->info("Received P2P POST webhook with code: {$body_webhook->code}", ['source' => 'trustap-child']);
 
 
 
@@ -361,7 +404,7 @@ class Service_Override
                 $seller_trustap_id,
                 '',
             );
-         //   $logger->info('accept_deposit response: ' . print_r($result, true), ['source' => 'trustap-child']);
+            //   $logger->info('accept_deposit response: ' . print_r($result, true), ['source' => 'trustap-child']);
 
         } catch (Exception $exception) {
 
@@ -416,9 +459,6 @@ class Service_Override
         }
 
     }
-
-
-
     private function cancel_order($transaction_id)
     {
 
@@ -431,8 +471,6 @@ class Service_Override
         }
 
     }
-
-
 
     public static function get_order_by_transaction_id($transaction_id)
     {
