@@ -67,7 +67,7 @@ class T4e_Pg_Trustap_Admin
 		$order = wc_get_order($post->ID);
 
 		$logger = wc_get_logger();
-		$logger->info('t4e_add_confirm_handover_meta_box', ['source' => 'class-t4e-pg-trustap-admin']);
+		$logger->info('t4e_add_confirm_handover_meta_box', ['source' => 'service-override']);
 
 		if (!$order) {
 		    return;
@@ -95,13 +95,12 @@ class T4e_Pg_Trustap_Admin
 
 	public function t4e_confirm_handover_meta_box()
 	{
-		$template = new Template();
 		$args = [
 			'icon' => TRUSTAP_IMAGE_URL . "handshake-simple-solid.svg",
 			'confirm_handover_url' => UriEnumerator::CONFIRM_HANDOVER_URL(),
 			'nonce' => wp_create_nonce('wp_rest')
 		];
-		echo $template->render('settings', 'ConfirmHandover', $args);
+		include(plugin_dir_path(__FILE__) . 'partials/t4e-confirm-handover.php');
 	}
 
 	public function wcfmmp_custom_pg($payment_methods)
