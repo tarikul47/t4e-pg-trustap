@@ -76,17 +76,9 @@ class T4e_Pg_Trustap_Admin
 
 	public function t4e_confirm_handover($request)
 	{
-		// $order_id = $request->get_param('orderId');
-		// Add your custom logic here
-		// return new WP_REST_Response(array('success' => true, 'order_id' => $order_id), 200);
-
-
 		$order_id = $request->get_param('orderId');
 		$order = wc_get_order($order_id);
 		$transaction_id = $order->get_meta('trustap_transaction_ID');
-
-		$data = ['transactionId' => $transaction_id];
-
 
 		$seller_id = '';
 		foreach ($order->get_items() as $item) {
@@ -98,28 +90,44 @@ class T4e_Pg_Trustap_Admin
 		}
 
 		if (empty($seller_id)) {
-			throw new Exception('Seller ID not found for order #' . $order->get_id());
+			return new WP_Error(
+				'no_seller',
+				'Seller ID not found for order #' . $order->get_id(),
+				array('status' => 400)
+			);
 		}
 
 		$seller_trustap_id = get_user_meta($seller_id, 'trustap_user_id', true);
 
-
+		$data = ['transactionId' => $transaction_id];
 		$raw_response = $this->controller->post_request(
 			"/p2p/transactions/{$transaction_id}/confirm_handover",
 			$seller_trustap_id,
 			$data
 		);
 
-		$response_status = json_decode($raw_response['response']["code"]);
-		$response_body = json_decode($raw_response['body']);
+		$response_status = $raw_response['response']['code'];
+		$response_body = json_decode($raw_response['body'], true);
+
 		if ($response_status != 200) {
-			wp_send_json($response_body, 500);
-			return;
+			return new WP_Error(
+				'handover_failed',
+				$response_body['message'] ?? 'Handover confirmation failed.',
+				array('status' => $response_status)
+			);
 		}
-		$order = wc_get_order($order_id);
+
 		$order->update_status('handoverconfirmed');
 
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => 'Handover confirmed successfully.'
+			),
+			200
+		);
 	}
+
 
 	public function t4e_add_confirm_handover_meta_box($post_type, $post)
 	{
