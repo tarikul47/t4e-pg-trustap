@@ -169,6 +169,8 @@ class T4e_Pg_Trustap_Admin
 			'confirm_handover_url' => UriEnumerator::CONFIRM_HANDOVER_URL(),
 			'nonce' => wp_create_nonce('wp_rest')
 		];
+		// Make $icon, $confirm_handover_url, $nonce available in partial
+		extract($args);
 		include(plugin_dir_path(__FILE__) . 'partials/t4e-confirm-handover.php');
 	}
 
