@@ -141,15 +141,15 @@ class T4e_Pg_Trustap_Admin
 		if (!$order) {
 			return;
 		}
-		if (strpos($order->get_meta('model'), "p2p/") === false) {
-			return;
-		}
-		if ($order->get_payment_method() !== 'trustap') {
-			return;
-		}
-		if (!$order->has_status('handoverpending')) {
-			return;
-		}
+		// if (strpos($order->get_meta('model'), "p2p/") === false) {
+		// 	return;
+		// }
+		// if ($order->get_payment_method() !== 'trustap') {
+		// 	return;
+		// }
+		// if (!$order->has_status('handoverpending')) {
+		// 	return;
+		// }
 
 		add_meta_box(
 			't4e-trustap-confirm-handover-meta-box_ffnnn',

@@ -2,6 +2,12 @@
   "use strict";
 
   window.t4eConfirmHandover = function () {
+    const button = document.getElementById("t4e-confirm-handover-button");
+    const spinner = document.getElementById("t4e-handover-spinner");
+
+    button.style.display = "none";
+    spinner.style.display = "block";
+
     const params = new Proxy(new URLSearchParams(window.location.search), {
       get: (searchParams, prop) => searchParams.get(prop),
     });
@@ -19,15 +25,17 @@
       .then(async (response) => {
         let data = await response.json();
         if (response.ok) {
-          // Success
           location.reload();
         } else {
-          // Failed
           alert(data.message || "Handover confirmation failed!");
         }
       })
       .catch((error) => {
         alert("Error: " + error.message);
+      })
+      .finally(() => {
+        button.style.display = "block";
+        spinner.style.display = "none";
       });
   };
 })(jQuery);
