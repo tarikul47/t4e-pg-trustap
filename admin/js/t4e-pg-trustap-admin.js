@@ -5,7 +5,8 @@
 		const params = new Proxy(new URLSearchParams(window.location.search), {
 			get: (searchParams, prop) => searchParams.get(prop),
 		});
-		let orderId = params.post;
+		let orderId = params.id;
+		console.log('orderId', orderId);
 		fetch(t4e_pg_trustap_admin_data.confirm_handover_url, {
 			method: "POST",
 			headers: {
@@ -16,7 +17,9 @@
 			body: JSON.stringify({orderId})
 		})
 		.then(response => {
-			location.reload();
+			console.log('response', response);
+			
+			//location.reload();
 		});
 	}
 
