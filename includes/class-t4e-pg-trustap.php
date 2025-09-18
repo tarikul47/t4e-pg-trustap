@@ -177,9 +177,8 @@ class T4e_Pg_Trustap
 		// Register your custom payment gateway with WCFM Marketplace
 		$this->loader->add_filter('wcfm_marketplace_withdrwal_payment_methods', $plugin_admin, 'wcfmmp_custom_pg');
 		$this->loader->add_filter('woocommerce_payment_gateways', $plugin_admin, 'override_trustap_gateway', 999);
-		//	$this->loader->add_action('user_register', $plugin_admin, 'create_trustap_guest_user_on_registration', 10, 1);
 
-		// add_filter('woocommerce_payment_gateways', [$this, 'override_trustap_gateway'], 999);
+		$this->loader->add_action('add_meta_boxes', $plugin_admin, 't4e_add_confirm_handover_meta_box', 10, 2);
 
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');

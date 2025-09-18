@@ -49,7 +49,8 @@ class Service_Override
 
         add_action('woocommerce_api_trustap_webhook_raju', array($this, 'child_trustap_custom_webhook'));
 
-        add_action('add_meta_boxes', array($this, 't4e_add_confirm_handover_meta_box'), 10, 2);
+       // add_action('add_meta_boxes', [$this, 't4e_add_confirm_handover_meta_box'], 110000, 2);
+
 
     }
 
@@ -59,26 +60,29 @@ class Service_Override
         // global $post;
         $order = wc_get_order($post->ID);
 
-        var_dump($order);
+        $logger = wc_get_logger();
+        $logger->info('t4e_add_confirm_handover_meta_box', ['source' => 'service-override']);
 
-        if (!$order) {
-            return;
-        }
-        if (strpos($order->get_meta('model'), "p2p/") === false) {
-            return;
-        }
-        if ($order->get_payment_method() !== 'trustap') {
-            return;
-        }
-        if (!$order->has_status('handoverpending')) {
-            return;
-        }
+
+
+        // if (!$order) {
+        //     return;
+        // }
+        // if (strpos($order->get_meta('model'), "p2p/") === false) {
+        //     return;
+        // }
+        // if ($order->get_payment_method() !== 'trustap') {
+        //     return;
+        // }
+        // if (!$order->has_status('handoverpending')) {
+        //     return;
+        // }
 
         add_meta_box(
             't4e-trustap-confirm-handover-meta-box_ffnnn',
             'Trustap Handover Custopmmm',
-            array($this, 't4e_confirm_handover_meta_box'),
-            'woocommerce_page_wc-orders',
+            [$this, 't4e_confirm_handover_meta_box'],
+            'page',
             'side',
             'high'
         );

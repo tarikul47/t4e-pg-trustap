@@ -1,5 +1,9 @@
 <?php
 
+use Trustap\PaymentGateway\Helper\Template;
+
+use Trustap\PaymentGateway\Enumerators\Uri as UriEnumerator;
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -54,6 +58,50 @@ class T4e_Pg_Trustap_Admin
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
+	}
+
+	public function t4e_add_confirm_handover_meta_box($post_type, $post)
+	{
+
+		// global $post;
+		$order = wc_get_order($post->ID);
+
+		$logger = wc_get_logger();
+		$logger->info('t4e_add_confirm_handover_meta_box', ['source' => 'class-t4e-pg-trustap-admin']);
+
+		if (!$order) {
+		    return;
+		}
+		if (strpos($order->get_meta('model'), "p2p/") === false) {
+		    return;
+		}
+		if ($order->get_payment_method() !== 'trustap') {
+		    return;
+		}
+		if (!$order->has_status('handoverpending')) {
+		    return;
+		}
+
+		add_meta_box(
+			't4e-trustap-confirm-handover-meta-box_ffnnn',
+			'Trustap Handover Custopmmm',
+			[$this, 't4e_confirm_handover_meta_box'],
+			'woocommerce_page_wc-orders',
+			'side',
+			'high'
+		);
+	}
+
+
+	public function t4e_confirm_handover_meta_box()
+	{
+		$template = new Template();
+		$args = [
+			'icon' => TRUSTAP_IMAGE_URL . "handshake-simple-solid.svg",
+			'confirm_handover_url' => UriEnumerator::CONFIRM_HANDOVER_URL(),
+			'nonce' => wp_create_nonce('wp_rest')
+		];
+		echo $template->render('settings', 'ConfirmHandover', $args);
 	}
 
 	public function wcfmmp_custom_pg($payment_methods)
