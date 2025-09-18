@@ -6,7 +6,6 @@
 			get: (searchParams, prop) => searchParams.get(prop),
 		});
 		let orderId = params.id;
-		console.log('orderId', orderId);
 		fetch(t4e_pg_trustap_admin_data.confirm_handover_url, {
 			method: "POST",
 			headers: {
@@ -16,9 +15,8 @@
 			credentials: "include",
 			body: JSON.stringify({orderId})
 		})
-		.then(response => {
-			console.log('response', response);
-			
+		.then(response => response.json())
+		.then(data => {
 			location.reload();
 		});
 	}
