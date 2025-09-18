@@ -58,6 +58,24 @@ class T4e_Pg_Trustap_Admin
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
+		add_action('rest_api_init', array($this, 'register_routes'));
+
+	}
+
+	public function register_routes()
+	{
+		register_rest_route('t4e-pg-trustap/v1', '/confirm-handover', array(
+			'methods' => 'POST',
+			'callback' => array($this, 't4e_confirm_handover'),
+			'permission_callback' => '__return_true' // Adjust permissions as needed
+		));
+	}
+
+	public function t4e_confirm_handover($request)
+	{
+		$order_id = $request->get_param('orderId');
+		// Add your custom logic here
+		return new WP_REST_Response(array('success' => true, 'order_id' => $order_id), 200);
 	}
 
 	public function t4e_add_confirm_handover_meta_box($post_type, $post)
@@ -187,7 +205,7 @@ class T4e_Pg_Trustap_Admin
 				'method' => 'POST',
 				'headers' => array(
 					'Authorization' => 'Basic ' . base64_encode($client_id . ':'),
-					'Content-Type' => 'application/json',
+				'Content-Type' => 'application/json',
 				),
 				'body' => json_encode($body),
 				'timeout' => 60,
@@ -262,6 +280,12 @@ class T4e_Pg_Trustap_Admin
 		 */
 
 		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/t4e-pg-trustap-admin.js', array('jquery'), $this->version, false);
+
+		$localized_data = array(
+			'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
+			'nonce' => wp_create_nonce('wp_rest')
+		);
+		wp_localize_script($this->plugin_name, 't4e_pg_trustap_admin_data', $localized_data);
 
 	}
 
