@@ -19,7 +19,7 @@
 		.then(response => {
 			console.log('response', response);
 			
-			//location.reload();
+			location.reload();
 		});
 	}
 

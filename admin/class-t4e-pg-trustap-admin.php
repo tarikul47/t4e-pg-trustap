@@ -1,7 +1,7 @@
 <?php
 
 use Trustap\PaymentGateway\Helper\Template;
-
+use Trustap\PaymentGateway\Controller\AbstractController;
 use Trustap\PaymentGateway\Enumerators\Uri as UriEnumerator;
 
 /**
@@ -52,12 +52,15 @@ class T4e_Pg_Trustap_Admin
 	 * @param      string    $plugin_name       The name of this plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
+
+	protected $controller;
+
 	public function __construct($plugin_name, $version)
 	{
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-
+		$this->controller = new AbstractController('trustap/v1');
 		add_action('rest_api_init', array($this, 'register_routes'));
 
 	}
@@ -73,9 +76,49 @@ class T4e_Pg_Trustap_Admin
 
 	public function t4e_confirm_handover($request)
 	{
-		$order_id = $request->get_param('orderId');
+		// $order_id = $request->get_param('orderId');
 		// Add your custom logic here
-		return new WP_REST_Response(array('success' => true, 'order_id' => $order_id), 200);
+		// return new WP_REST_Response(array('success' => true, 'order_id' => $order_id), 200);
+
+
+		$order_id = $request->get_param('orderId');
+		$order = wc_get_order($order_id);
+		$transaction_id = $order->get_meta('trustap_transaction_ID');
+
+		$data = ['transactionId' => $transaction_id];
+
+
+		$seller_id = '';
+		foreach ($order->get_items() as $item) {
+			$product = $item->get_product();
+			if ($product) {
+				$seller_id = get_post_field('post_author', $product->get_id());
+				break;
+			}
+		}
+
+		if (empty($seller_id)) {
+			throw new Exception('Seller ID not found for order #' . $order->get_id());
+		}
+
+		$seller_trustap_id = get_user_meta($seller_id, 'trustap_user_id', true);
+
+
+		$raw_response = $this->controller->post_request(
+			"/p2p/transactions/{$transaction_id}/confirm_handover",
+			$seller_trustap_id,
+			$data
+		);
+
+		$response_status = json_decode($raw_response['response']["code"]);
+		$response_body = json_decode($raw_response['body']);
+		if ($response_status != 200) {
+			wp_send_json($response_body, 500);
+			return;
+		}
+		$order = wc_get_order($order_id);
+		$order->update_status('handoverconfirmed');
+
 	}
 
 	public function t4e_add_confirm_handover_meta_box($post_type, $post)
@@ -88,16 +131,16 @@ class T4e_Pg_Trustap_Admin
 		$logger->info('t4e_add_confirm_handover_meta_box', ['source' => 'service-override']);
 
 		if (!$order) {
-		    return;
+			return;
 		}
 		if (strpos($order->get_meta('model'), "p2p/") === false) {
-		    return;
+			return;
 		}
 		if ($order->get_payment_method() !== 'trustap') {
-		    return;
+			return;
 		}
 		if (!$order->has_status('handoverpending')) {
-		    return;
+			return;
 		}
 
 		add_meta_box(
@@ -205,7 +248,7 @@ class T4e_Pg_Trustap_Admin
 				'method' => 'POST',
 				'headers' => array(
 					'Authorization' => 'Basic ' . base64_encode($client_id . ':'),
-				'Content-Type' => 'application/json',
+					'Content-Type' => 'application/json',
 				),
 				'body' => json_encode($body),
 				'timeout' => 60,
