@@ -25,6 +25,7 @@
       .then(async (response) => {
         let data = await response.json();
         if (response.ok) {
+          alert(data.message || 'Handover confirmed successfully!');
           location.reload();
         } else {
           alert(data.message || "Handover confirmation failed!");
