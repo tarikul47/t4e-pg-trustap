@@ -83,18 +83,28 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
 
         public function get_trustap_seller_id(array $items)
         {
+            $this->log('Enter get_trustap_seller_id');
             $first_item = reset($items);
             $product_id = $first_item->get_product_id();
+            $this->log('Product ID: ' . $product_id);
+
             $vendor_id = wcfm_get_vendor_id_by_post($product_id);
+            $this->log('wcfm_get_vendor_id_by_post returned: ' . ($vendor_id ? $vendor_id : '0 or empty'));
 
             if ($vendor_id) {
+                $this->log('Vendor ID found. Looking for Trustap user ID for vendor ' . $vendor_id);
                 $seller_id = get_user_meta($vendor_id, 'trustap_user_id', true);
                 if (empty($seller_id)) {
+                    $this->log('ERROR: Trustap user ID not found for vendor ' . $vendor_id);
                     return new WP_Error('no_trustap_account', __('The vendor for this product does not have a Trustap account configured.', 'wcfm-pg-trustap'));
                 }
+                $this->log('Found vendor Trustap seller ID: ' . $seller_id);
                 return $seller_id;
             } else {
-                return $this->controller->seller_id;
+                $this->log('No vendor ID found. Assuming admin product. Fetching admin seller ID from parent controller.');
+                $admin_seller_id = $this->controller->seller_id;
+                $this->log('Found admin Trustap seller ID: ' . $admin_seller_id);
+                return $admin_seller_id;
             }
         }
 
