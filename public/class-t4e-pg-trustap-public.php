@@ -78,13 +78,13 @@ class T4e_Pg_Trustap_Public
 		$vendor_data = $vendor_data ? $vendor_data : [];
 		$settings = array();
 
-		$trustap_settings = get_option('woocommerce_trustap_settings', array());
-		$test_mode = (isset($trustap_settings['testmode']) && $trustap_settings['testmode'] === 'yes') ? true : false;
-		$environment = $test_mode ? 'test' : 'live';
-		$client_id = get_option("trustap_{$environment}_client_id");
+		// $trustap_settings = get_option('woocommerce_trustap_settings', array());
+		// $test_mode = (isset($trustap_settings['testmode']) && $trustap_settings['testmode'] === 'yes') ? true : false;
+		// $environment = $test_mode ? 'test' : 'live';
 
+		$client_id = get_option("trustap_{$this->trustap_api->environment}_client_id");
 
-		$trustap_user_id = get_user_meta($vendor_id, 'trustap_user_id', true);
+		$trustap_user_id = get_user_meta($vendor_id, "trustap_{$this->trustap_api->environment}_user_id", true);
 
 		//var_dump($trustap_user_id);
 
@@ -152,9 +152,10 @@ class T4e_Pg_Trustap_Public
 
 		$user_id = get_current_user_id();
 
-		delete_user_meta($user_id, 'trustap_user_id');
-		delete_user_meta($user_id, 'trustap_access_token');
-		delete_user_meta($user_id, 'trustap_refresh_token');
+
+		delete_user_meta($user_id, "trustap_{$this->trustap_api->environment}_user_id");
+		// delete_user_meta($user_id, 'trustap_access_token');
+		// delete_user_meta($user_id, 'trustap_refresh_token');
 
 		$redirect_url = get_wcfm_settings_url() . '#wcfm_settings_form_payment_head';
 

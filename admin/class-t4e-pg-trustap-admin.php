@@ -45,6 +45,9 @@ class T4e_Pg_Trustap_Admin
 	 */
 	private $version;
 
+	private $trustap_api;
+
+
 	private $helper;
 
 	/**
@@ -63,6 +66,7 @@ class T4e_Pg_Trustap_Admin
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 		$this->helper = new WCFM_Trustap_Helper();
+		$this->trustap_api = new WCFM_Trustap_API();
 		$this->controller = new AbstractController('trustap/v1');
 		add_action('rest_api_init', array($this, 'register_routes'));
 
@@ -197,7 +201,8 @@ class T4e_Pg_Trustap_Admin
 
 	public function create_trustap_guest_user_on_registration($user_id)
 	{
-		if (get_user_meta($user_id, 'trustap_user_id', true)) {
+		
+		if (get_user_meta($user_id, "trustap_guest_{$this->trustap_api->environment}_user_id", true)) {
 			return;
 		}
 
@@ -279,7 +284,7 @@ class T4e_Pg_Trustap_Admin
 				WCFMTrustap_Logger::log('Trustap guest user creation response body: ' . print_r($decoded_response, true));
 
 				if (isset($decoded_response['id'])) {
-					update_user_meta($user_id, 'trustap_guest_user_id', $decoded_response['id']);
+					update_user_meta($user_id, "trustap_guest_{$this->trustap_api->environment}_user_id", $decoded_response['id']);
 					WCFMTrustap_Logger::log('Trustap guest user ID saved for user ' . $user_id . ': ' . $decoded_response['id']);
 				} else {
 					WCFMTrustap_Logger::log('Trustap guest user ID not found in response.');

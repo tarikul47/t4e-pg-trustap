@@ -3,7 +3,7 @@ class WCFM_Trustap_API
 {
     private $settings;
     private $test_mode;
-    private $environment;
+    public $environment;
     public $api_key;
     public $client_id;
     private $client_secret;
@@ -115,9 +115,11 @@ class WCFM_Trustap_API
             $id_token_payload = json_decode(base64_decode($id_token_parts[1]), true);
 
             if (isset($id_token_payload['sub'])) {
-                update_user_meta($user_id, 'trustap_user_id', $id_token_payload['sub']);
-                update_user_meta($user_id, 'trustap_access_token', $data['access_token']);
-                update_user_meta($user_id, 'trustap_refresh_token', $data['refresh_token']);
+                // update_user_meta($user_id, 'trustap_user_id', $id_token_payload['sub']);
+                // update_user_meta($user_id, 'trustap_access_token', $data['access_token']);
+                // update_user_meta($user_id, 'trustap_refresh_token', $data['refresh_token']);
+
+                update_user_meta($user_id, "trustap_{$this->environment}_user_id", $id_token_payload['sub']);
                 return true;
             }
         }
