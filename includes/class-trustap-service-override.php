@@ -371,48 +371,26 @@ class Service_Override
     {
         $logger = wc_get_logger();
         try {
-            $seller_id = '';
-            foreach ($order->get_items() as $item) {
-                $product = $item->get_product();
-                if ($product) {
-                    $seller_id = get_post_field('post_author', $product->get_id());
-                    break;
-                }
+            $helper = new WCFM_Trustap_Helper();
+            $seller_trustap_id = $helper->get_trustap_seller_id($order->get_items());
+
+            if (is_wp_error($seller_trustap_id)) {
+                throw new Exception($seller_trustap_id->get_error_message());
             }
 
-            if (empty($seller_id)) {
-                throw new Exception('Seller ID not found for order #' . $order->get_id());
+            if (empty($seller_trustap_id)) {
+                throw new Exception('Seller Trustap ID not found for order #' . $order->get_id());
             }
-
-            $seller_trustap_id = get_user_meta($seller_id, 'trustap_user_id', true);
-            $access_token = get_user_meta($seller_id, 'trustap_access_token', true);
-
-            // $logger->info(
-
-            //     'accept_deposit request: ' . print_r([
-            //         'transaction_id' => $transaction_id,
-            //         'seller_id' => $seller_id,
-            //         'seller_trustap_id' => $seller_trustap_id,
-            //         'access_token' => $access_token,
-            //         'order_id' => $order->get_id()
-            //     ], true),
-
-            //     ['source' => 'trustap-child']
-
-            // );
 
             $result = $this->controller->post_request(
                 "p2p/transactions/{$transaction_id}/accept_deposit",
                 $seller_trustap_id,
                 '',
             );
-            //   $logger->info('accept_deposit response: ' . print_r($result, true), ['source' => 'trustap-child']);
 
         } catch (Exception $exception) {
-
             $logger->error('accept_deposit error: ' . $exception->getMessage(), ['source' => 'trustap-child']);
             $order->add_order_note(__('Accept deposit manually.', 'trustap-payment-gateway'), false);
-            return wp_redirect($this->wc_payment_gateway->get_return_url($order));
         }
     }
 

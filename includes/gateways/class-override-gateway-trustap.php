@@ -31,6 +31,7 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
         public function process_payment($order_id)
         {
             $order = wc_get_order($order_id);
+            $helper = new WCFM_Trustap_Helper();
 
             try {
                 if (!$this->validate_vendor_consistency($order->get_items())) {
@@ -38,7 +39,7 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
                     return;
                 }
 
-                $seller_id = $this->get_trustap_seller_id($order->get_items());
+                $seller_id = $helper->get_trustap_seller_id($order->get_items());
                 if (is_wp_error($seller_id)) {
                     wc_add_notice($seller_id->get_error_message(), 'error');
                     return;
@@ -50,7 +51,7 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
 
                 $trustap_model = $this->get_trustap_model();
                 $charge_details = $this->get_trustap_charge_details($order, $trustap_model);
-                $buyer_id = $this->get_trustap_buyer_id();
+                $buyer_id = $helper->get_trustap_buyer_id();
 
                 $transaction = $this->create_trustap_transaction($order, $seller_id, $buyer_id, $charge_details, $trustap_model);
 
@@ -79,44 +80,6 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
                 }
             }
             return true;
-        }
-
-        public function get_trustap_seller_id(array $items)
-        {
-            $this->log('Enter get_trustap_seller_id');
-            $first_item = reset($items);
-            $product_id = $first_item->get_product_id();
-            $this->log('Product ID: ' . $product_id);
-
-            $vendor_id = wcfm_get_vendor_id_by_post($product_id);
-            $this->log('wcfm_get_vendor_id_by_post returned: ' . ($vendor_id ? $vendor_id : '0 or empty'));
-
-            if ($vendor_id) {
-                $this->log('Vendor ID found. Looking for Trustap user ID for vendor ' . $vendor_id);
-                $seller_id = get_user_meta($vendor_id, 'trustap_user_id', true);
-                if (empty($seller_id)) {
-                    $this->log('ERROR: Trustap user ID not found for vendor ' . $vendor_id);
-                    return new WP_Error('no_trustap_account', __('The vendor for this product does not have a Trustap account configured.', 'wcfm-pg-trustap'));
-                }
-                $this->log('Found vendor Trustap seller ID: ' . $seller_id);
-                return $seller_id;
-            } else {
-                $this->log('No vendor ID found. Assuming admin product. Fetching admin seller ID from parent controller.');
-                $admin_seller_id = $this->controller->seller_id;
-                $this->log('Found admin Trustap seller ID: ' . $admin_seller_id);
-                return $admin_seller_id;
-            }
-        }
-
-        public function get_trustap_buyer_id()
-        {
-            $buyer_id = get_current_user_id();
-            $trustap_buyer_id = get_user_meta($buyer_id, 'trustap_guest_user_id', true);
-
-            if (empty($trustap_buyer_id) && isset($_SESSION['buyer_id'])) {
-                $trustap_buyer_id = $_SESSION['buyer_id'];
-            }
-            return $trustap_buyer_id;
         }
 
         private function validate_cart_for_trustap(WC_Order $order)
