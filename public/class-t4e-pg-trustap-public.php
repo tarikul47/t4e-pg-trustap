@@ -105,7 +105,7 @@ class T4e_Pg_Trustap_Public
 					'name' => 'payment[' . $gateway_slug . '][nationality]',
 					'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
 					'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
-					'value' => '<p>You have connected successfully!</p><a href="' . esc_url($disconnect_url) . '" class="button">Disconnect</a><p>Please completed your profile before withdrwa your earnings - <a target="_blank" href="' . $trustap_profile_link . '">Click Here</a></p>',
+					'value' => '<p>You have connected successfully!</p> <p>Please completed your profile before withdrwa your earnings - <a target="_blank" href="' . $trustap_profile_link . '">Click Here</a></p><a href="' . esc_url($disconnect_url) . '" class="button">Disconnect</a>',
 					'custom_attributes' => array(
 						'required' => 'required'
 					),
