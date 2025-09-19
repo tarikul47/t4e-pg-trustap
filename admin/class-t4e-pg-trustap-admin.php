@@ -80,24 +80,24 @@ class T4e_Pg_Trustap_Admin
 		$order = wc_get_order($order_id);
 		$transaction_id = $order->get_meta('trustap_transaction_ID');
 
-		$seller_id = '';
-		foreach ($order->get_items() as $item) {
-			$product = $item->get_product();
-			if ($product) {
-				$seller_id = get_post_field('post_author', $product->get_id());
-				break;
-			}
-		}
+		$helper = new WCFM_Trustap_Helper();
+		$seller_trustap_id = $helper->get_trustap_seller_id($order->get_items());
 
-		if (empty($seller_id)) {
+		if (is_wp_error($seller_trustap_id)) {
 			return new WP_Error(
-				'no_seller',
-				'Seller ID not found for order #' . $order->get_id(),
+				'no_seller_trustap_id',
+				$seller_trustap_id->get_error_message(),
 				array('status' => 400)
 			);
 		}
 
-		$seller_trustap_id = get_user_meta($seller_id, 'trustap_user_id', true);
+		if (empty($seller_trustap_id)) {
+			return new WP_Error(
+				'no_seller_trustap_id',
+				'Seller Trustap ID not found for order #' . $order->get_id(),
+				array('status' => 400)
+			);
+		}
 
 		$data = ['transactionId' => $transaction_id];
 		$raw_response = $this->controller->post_request(
