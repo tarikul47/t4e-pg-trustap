@@ -14,6 +14,8 @@ class Service_Override
 
     private $wc_payment_gateway;
 
+    private $helper;
+
     public $controller;
     public $namespace;
 
@@ -33,6 +35,7 @@ class Service_Override
     {
         // Initialize properties from AbstractController's constructor
         $this->controller = $controller;
+        $this->helper = new WCFM_Trustap_Helper();
         $this->trustap_api = new WCFM_Trustap_API();
 
         $this->namespace = 'trustap_payment_gateway';
@@ -49,7 +52,7 @@ class Service_Override
 
         add_action('woocommerce_api_trustap_webhook_raju', array($this, 'child_trustap_custom_webhook'));
 
-       // add_action('add_meta_boxes', [$this, 't4e_add_confirm_handover_meta_box'], 110000, 2);
+        // add_action('add_meta_boxes', [$this, 't4e_add_confirm_handover_meta_box'], 110000, 2);
 
 
     }
@@ -371,8 +374,7 @@ class Service_Override
     {
         $logger = wc_get_logger();
         try {
-            $helper = new WCFM_Trustap_Helper();
-            $seller_trustap_id = $helper->get_trustap_seller_id($order->get_items());
+            $seller_trustap_id = $this->helper->get_trustap_seller_id($order->get_items());
 
             if (is_wp_error($seller_trustap_id)) {
                 throw new Exception($seller_trustap_id->get_error_message());

@@ -45,6 +45,8 @@ class T4e_Pg_Trustap_Admin
 	 */
 	private $version;
 
+	private $helper;
+
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -60,6 +62,7 @@ class T4e_Pg_Trustap_Admin
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+		$this->helper = new WCFM_Trustap_Helper();
 		$this->controller = new AbstractController('trustap/v1');
 		add_action('rest_api_init', array($this, 'register_routes'));
 
@@ -80,8 +83,7 @@ class T4e_Pg_Trustap_Admin
 		$order = wc_get_order($order_id);
 		$transaction_id = $order->get_meta('trustap_transaction_ID');
 
-		$helper = new WCFM_Trustap_Helper();
-		$seller_trustap_id = $helper->get_trustap_seller_id($order->get_items());
+		$seller_trustap_id = $this->helper->get_trustap_seller_id($order->get_items());
 
 		if (is_wp_error($seller_trustap_id)) {
 			return new WP_Error(

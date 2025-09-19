@@ -11,11 +11,14 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
     class Override_Gateway_Trustap extends Trustap_Gateway
     {
         protected $logger;
+
+        private $helper;
         protected $controller;
 
         public function __construct()
         {
             parent::__construct();
+            $this->helper = new WCFM_Trustap_Helper();
             $this->controller = new AbstractController('trustap/v1');
             $this->my_custom_service = new Service_Override($this, $this->controller);
 
@@ -31,7 +34,6 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
         public function process_payment($order_id)
         {
             $order = wc_get_order($order_id);
-            $helper = new WCFM_Trustap_Helper();
 
             try {
                 if (!$this->validate_vendor_consistency($order->get_items())) {
@@ -39,7 +41,7 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
                     return;
                 }
 
-                $seller_id = $helper->get_trustap_seller_id($order->get_items());
+                $seller_id = $this->helper->get_trustap_seller_id($order->get_items());
                 if (is_wp_error($seller_id)) {
                     wc_add_notice($seller_id->get_error_message(), 'error');
                     return;
@@ -51,7 +53,7 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
 
                 $trustap_model = $this->get_trustap_model();
                 $charge_details = $this->get_trustap_charge_details($order, $trustap_model);
-                $buyer_id = $helper->get_trustap_buyer_id();
+                $buyer_id = $this->helper->get_trustap_buyer_id();
 
                 $transaction = $this->create_trustap_transaction($order, $seller_id, $buyer_id, $charge_details, $trustap_model);
 
