@@ -12,6 +12,11 @@
     border-radius: 5px;
 }
 
+#trustap_connection h5 {
+    margin-bottom: 7px;
+}
+
 #trustap_connection p {
     font-size: 12px;
+    margin-bottom: 10px;
 }
