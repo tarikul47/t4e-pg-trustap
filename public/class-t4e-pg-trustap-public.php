@@ -94,7 +94,9 @@ class T4e_Pg_Trustap_Public
 
 		//$trustap_user_id = '';
 
-		$trustap_profile_link = "https://app.stage.trustap.com/profile/payout/personal?edit=true&client_id={$client_id}";
+		$is_test_mode = ($this->trustap_api->environment === 'test');
+		$base_url = $is_test_mode ? 'https://app.stage.trustap.com' : 'https://app.trustap.com';
+		$trustap_profile_link = "{$base_url}/profile/payout/personal?edit=true&client_id={$client_id}";
 
 		if ($trustap_user_id) {
 			$disconnect_url = admin_url('admin-ajax.php?action=wcfm_trustap_disconnect');
