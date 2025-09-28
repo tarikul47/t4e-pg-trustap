@@ -171,6 +171,7 @@ class T4e_Pg_Trustap_Public
 			return; // Stop on API failure
 		}
 
+		$order->update_status('handoverconfirmed');
 		$order->update_meta_data('trustap_handover_completed', true);
 		$order->save();
 
