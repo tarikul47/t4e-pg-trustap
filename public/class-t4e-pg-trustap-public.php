@@ -68,6 +68,76 @@ class T4e_Pg_Trustap_Public
 		add_action('wp_ajax_wcfm_trustap_oauth_callback', array($this, 'handle_oauth_callback_ajax'));
 		add_action('wp_ajax_wcfm_trustap_disconnect', array($this, 'handle_disconnect_ajax'));
 
+		add_action('wcfm_order_details_after_order_notes', array($this, 'wcfm_show_handover_button'), 10, 1);
+		add_action('template_redirect', array($this, 'wcfm_handle_handover_confirmation'));
+	}
+
+	public function wcfm_show_handover_button($order_id)
+	{
+		$order = wc_get_order($order_id);
+		$payment_method = $order->get_payment_method();
+
+		if ('trustap' !== $payment_method) {
+			return;
+		}
+
+		if ($order->get_meta('trustap_handover_completed', true)) {
+			return;
+		}
+
+		include_once(plugin_dir_path(__FILE__) . 'partials/wcfm-confirm-handover.php');
+	}
+
+	public function wcfm_handle_handover_confirmation()
+	{
+		if (
+			!isset($_POST['trustap_confirm_handover_vendor']) ||
+			!isset($_POST['trustap_confirm_handover_vendor_nonce_field']) ||
+			!wp_verify_nonce($_POST['trustap_confirm_handover_vendor_nonce_field'], 'trustap_confirm_handover_vendor_nonce')
+		) {
+			return;
+		}
+
+		$order_id = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0;
+
+		if (!$order_id) {
+			return;
+		}
+
+		$order = wc_get_order($order_id);
+
+		if (!$order) {
+			return;
+		}
+
+		// Check if user is vendor of this order
+		$is_vendor = false;
+		global $WCFM, $WCFMmp;
+		if (wcfm_is_vendor()) {
+			$vendor_id = $WCFMmp->vendor_id;
+			$order_items = $order->get_items();
+			foreach ($order_items as $item_id => $item) {
+				$product_id = $item->get_product_id();
+				$author_id = get_post_field('post_author', $product_id);
+				if ($author_id == $vendor_id) {
+					$is_vendor = true;
+					break;
+				}
+			}
+		}
+
+		if (!$is_vendor) {
+			return;
+		}
+
+
+		$order->update_meta_data('trustap_handover_completed', true);
+		$order->save();
+
+		$order->add_order_note(__('Handover confirmed by vendor.', 't4e-pg-trustap'));
+
+		wp_redirect(remove_query_arg(array('trustap_handover_confirmed'), wp_get_referer()));
+		exit;
 	}
 
 	public function wcfmmp_custom_pg_vendor_setting($vendor_billing_fields, $vendor_id)
