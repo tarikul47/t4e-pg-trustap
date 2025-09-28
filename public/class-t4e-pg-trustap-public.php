@@ -20,6 +20,8 @@
  * @subpackage T4e_Pg_Trustap/public
  * @author     Tarikul Islam <tarikul47@gmail.com>
  */
+use Trustap\PaymentGateway\Controller\AbstractController;
+
 class T4e_Pg_Trustap_Public
 {
 
@@ -50,6 +52,10 @@ class T4e_Pg_Trustap_Public
 	 */
 	private $trustap_api;
 
+	private $helper;
+
+	protected $controller;
+
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -63,6 +69,8 @@ class T4e_Pg_Trustap_Public
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 		$this->trustap_api = new WCFM_Trustap_API();
+		$this->helper = new WCFM_Trustap_Helper();
+		$this->controller = new AbstractController('trustap/v1');
 
 		//TODO: Need to set in special class 
 		add_action('wp_ajax_wcfm_trustap_oauth_callback', array($this, 'handle_oauth_callback_ajax'));
@@ -131,11 +139,42 @@ class T4e_Pg_Trustap_Public
 			return;
 		}
 
+		// Get required data for API call
+		$transaction_id = $order->get_meta('trustap_transaction_ID');
+		if (empty($transaction_id)) {
+			$order->add_order_note(__('Error: Trustap Transaction ID not found. Cannot confirm handover.', 't4e-pg-trustap'));
+			return; // Stop if no transaction ID
+		}
+
+		$seller_trustap_id = $this->helper->get_trustap_seller_id($order->get_items());
+		if (is_wp_error($seller_trustap_id) || empty($seller_trustap_id)) {
+			$message = is_wp_error($seller_trustap_id) ? $seller_trustap_id->get_error_message() : 'Seller Trustap ID not found.';
+			$order->add_order_note(__('Error: Could not confirm handover with Trustap. Reason: ', 't4e-pg-trustap') . $message);
+			return; // Stop if no seller ID
+		}
+
+		// Make the API call
+		$data = ['transactionId' => $transaction_id];
+		$raw_response = $this->controller->post_request(
+			"/p2p/transactions/{$transaction_id}/confirm_handover",
+			$seller_trustap_id,
+			$data
+		);
+
+		$response_status = $raw_response['response']['code'];
+
+		// Check API response
+		if ($response_status != 200) {
+			$response_body = json_decode($raw_response['body'], true);
+			$error_message = $response_body['message'] ?? 'Handover confirmation failed via API.';
+			$order->add_order_note(__('Error: Trustap API handover failed. Reason: ', 't4e-pg-trustap') . $error_message);
+			return; // Stop on API failure
+		}
 
 		$order->update_meta_data('trustap_handover_completed', true);
 		$order->save();
 
-		$order->add_order_note(__('Handover confirmed by vendor.', 't4e-pg-trustap'));
+		$order->add_order_note(__('Handover confirmed by vendor and Trustap API.', 't4e-pg-trustap'));
 
 		wp_redirect(remove_query_arg(array('trustap_handover_confirmed'), wp_get_referer()));
 		exit;
