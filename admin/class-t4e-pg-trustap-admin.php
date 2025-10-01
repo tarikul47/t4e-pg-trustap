@@ -109,7 +109,8 @@ class T4e_Pg_Trustap_Admin
 		$raw_response = $this->controller->post_request(
 			"/p2p/transactions/{$transaction_id}/confirm_handover",
 			$seller_trustap_id,
-			$data
+			//$data
+			''
 		);
 
 		$response_status = $raw_response['response']['code'];
