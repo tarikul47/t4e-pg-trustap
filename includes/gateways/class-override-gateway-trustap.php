@@ -13,7 +13,7 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
         protected $logger;
 
         private $helper;
-        protected $controller;
+        public $controller;
 
         public function __construct()
         {
