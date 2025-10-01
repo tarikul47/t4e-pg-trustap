@@ -110,7 +110,7 @@ class T4e_Pg_Trustap_Admin
 			"p2p/transactions/{$transaction_id}/confirm_handover",
 			$seller_trustap_id,
 			//$data
-			''
+			[]
 		);
 
 		$response_status = $raw_response['response']['code'];
