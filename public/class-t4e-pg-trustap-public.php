@@ -93,7 +93,11 @@ class T4e_Pg_Trustap_Public
 			return;
 		}
 
-		if ($order->get_meta('trustap_handover_completed', true)) {
+		// if ($order->get_meta('trustap_handover_completed', true)) {
+		// 	return;
+		// }
+
+		if (!$order->has_status('handoverpending')) {
 			return;
 		}
 
