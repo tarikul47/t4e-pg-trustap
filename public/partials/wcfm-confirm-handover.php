@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
         );
         ?>
     </p>
-    <form method="post" onsubmit="return confirm('Are you sure you want to confirm handover?');" action="">
+    <form method="post" action="">
         <input type="hidden" name="order_id" value="<?php echo esc_attr($order->get_id()); ?>">
         <input type="hidden" name="trustap_confirm_handover_vendor" value="true">
         <?php wp_nonce_field('trustap_confirm_handover_vendor_nonce', 'trustap_confirm_handover_vendor_nonce_field'); ?>
