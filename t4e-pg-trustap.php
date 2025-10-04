@@ -79,7 +79,11 @@ require plugin_dir_path(__FILE__) . 'includes/class-wcfm-trustap-api.php';
 require plugin_dir_path(__FILE__) . 'includes/class-wcfm-trustap-helper.php';
 require plugin_dir_path(__FILE__) . 'includes/class-t4e-pg-trustap.php';
 
-
+/**
+ * Summary of t4e_pg_trustap_set_testmode added 
+ * Set Global Testmode 
+ * @return void
+ */
 function t4e_pg_trustap_set_testmode() {
     $trustap_settings = get_option('woocommerce_trustap_settings');
     $GLOBALS['testmode'] = (isset($trustap_settings['testmode']) && $trustap_settings['testmode'] === 'yes');
