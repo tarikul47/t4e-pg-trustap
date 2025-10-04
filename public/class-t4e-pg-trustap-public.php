@@ -121,25 +121,25 @@ class T4e_Pg_Trustap_Public
 			return;
 		}
 
-		// Check if user is vendor of this order
-		$is_vendor = false;
-		global $WCFM, $WCFMmp;
-		if (wcfm_is_vendor()) {
-			$vendor_id = $WCFMmp->vendor_id;
-			$order_items = $order->get_items();
-			foreach ($order_items as $item_id => $item) {
-				$product_id = $item->get_product_id();
-				$author_id = get_post_field('post_author', $product_id);
-				if ($author_id == $vendor_id) {
-					$is_vendor = true;
-					break;
-				}
-			}
-		}
+		// // Check if user is vendor of this order
+		// $is_vendor = false;
+		// global $WCFM, $WCFMmp;
+		// if (wcfm_is_vendor()) {
+		// 	$vendor_id = $WCFMmp->vendor_id;
+		// 	$order_items = $order->get_items();
+		// 	foreach ($order_items as $item_id => $item) {
+		// 		$product_id = $item->get_product_id();
+		// 		$author_id = get_post_field('post_author', $product_id);
+		// 		if ($author_id == $vendor_id) {
+		// 			$is_vendor = true;
+		// 			break;
+		// 		}
+		// 	}
+		// }
 
-		if (!$is_vendor) {
-			return;
-		}
+		// if (!$is_vendor) {
+		// 	return;
+		// }
 
 		// Get required data for API call
 		$transaction_id = $order->get_meta('trustap_transaction_ID');
@@ -156,11 +156,11 @@ class T4e_Pg_Trustap_Public
 		}
 
 		// Make the API call
-		$data = ['transactionId' => $transaction_id];
+		//$data = ['transactionId' => $transaction_id];
 		$raw_response = $this->controller->post_request(
-			"/p2p/transactions/{$transaction_id}/confirm_handover",
+			"p2p/transactions/{$transaction_id}/confirm_handover",
 			$seller_trustap_id,
-			$data
+			[]
 		);
 
 		$response_status = $raw_response['response']['code'];
