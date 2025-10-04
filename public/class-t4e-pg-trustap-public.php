@@ -121,25 +121,6 @@ class T4e_Pg_Trustap_Public
 			return;
 		}
 
-		// // Check if user is vendor of this order
-		// $is_vendor = false;
-		// global $WCFM, $WCFMmp;
-		// if (wcfm_is_vendor()) {
-		// 	$vendor_id = $WCFMmp->vendor_id;
-		// 	$order_items = $order->get_items();
-		// 	foreach ($order_items as $item_id => $item) {
-		// 		$product_id = $item->get_product_id();
-		// 		$author_id = get_post_field('post_author', $product_id);
-		// 		if ($author_id == $vendor_id) {
-		// 			$is_vendor = true;
-		// 			break;
-		// 		}
-		// 	}
-		// }
-
-		// if (!$is_vendor) {
-		// 	return;
-		// }
 
 		// Get required data for API call
 		$transaction_id = $order->get_meta('trustap_transaction_ID');
@@ -177,7 +158,7 @@ class T4e_Pg_Trustap_Public
 		$order->update_meta_data('trustap_handover_completed', true);
 		$order->save();
 
-		$order->add_order_note(__('Handover confirmed by vendor and Trustap API.', 't4e-pg-trustap'));
+		$order->add_order_note(__('Handover confirmed by vendor dashboard and Trustap API.', 't4e-pg-trustap'));
 
 		wp_redirect(remove_query_arg(array('trustap_handover_confirmed'), wp_get_referer()));
 		exit;
