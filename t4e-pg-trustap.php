@@ -80,7 +80,7 @@ require plugin_dir_path(__FILE__) . 'includes/class-wcfm-trustap-helper.php';
 require plugin_dir_path(__FILE__) . 'includes/class-t4e-pg-trustap.php';
 
 /**
- * Summary of t4e_pg_trustap_set_testmode added 
+ * Summary of t4e_pg_trustap_set_testmode updated 
  * Set Global Testmode 
  * @return void
  */
