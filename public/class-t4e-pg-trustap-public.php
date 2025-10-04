@@ -76,13 +76,10 @@ class T4e_Pg_Trustap_Public
 		add_action('wp_ajax_wcfm_trustap_oauth_callback', array($this, 'handle_oauth_callback_ajax'));
 		add_action('wp_ajax_wcfm_trustap_disconnect', array($this, 'handle_disconnect_ajax'));
 
-		// This is not the function 
-		//	add_action('woocommerce_admin_order_data_after_order_details', array($this, 'wcfm_show_handover_button'), 10, 1);
-		//	add_action('wcfm_order_details_after_order_notes', array($this, 'wcfm_show_handover_button'), 10, 1);
+		// WCFM handover confirmed button show 
 		add_action('wcfm_order_details_after_order_table', array($this, 'wcfm_show_handover_button'), 10, 1);
 
-		// Here it is!
-		// add_action('wcfm_order_details_after_order_table', array($this, 'wcfm_show_handover_button'), 10, 1);
+		// Handover comfirm function exeucte here 
 		add_action('template_redirect', array($this, 'wcfm_handle_handover_confirmation'));
 	}
 
