@@ -5,6 +5,10 @@
     const button = document.getElementById("t4e-confirm-handover-button");
     const spinner = document.getElementById("t4e-handover-spinner");
 
+    // ✅ Confirm before proceeding
+    const confirmed = confirm("Are you sure you want to confirm handover?");
+    if (!confirmed) return;
+
     button.style.display = "none";
     spinner.style.display = "block";
 
@@ -25,7 +29,7 @@
       .then(async (response) => {
         let data = await response.json();
         if (response.ok) {
-          alert(data.message || 'Handover confirmed successfully!');
+          alert(data.message || "Handover confirmed successfully!");
           location.reload();
         } else {
           alert(data.message || "Handover confirmation failed!");
