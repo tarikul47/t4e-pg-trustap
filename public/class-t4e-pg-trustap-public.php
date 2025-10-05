@@ -167,79 +167,129 @@ class T4e_Pg_Trustap_Public
 	public function wcfmmp_custom_pg_vendor_setting($vendor_billing_fields, $vendor_id)
 	{
 		$gateway_slug = WCFMTrustap_GATEWAY;
-
 		$vendor_data = get_user_meta($vendor_id, 'wcfmmp_profile_settings', true);
 		$vendor_data = $vendor_data ? $vendor_data : [];
-		$settings = array();
-
-		// $trustap_settings = get_option('woocommerce_trustap_settings', array());
-		// $test_mode = (isset($trustap_settings['testmode']) && $trustap_settings['testmode'] === 'yes') ? true : false;
-		// $environment = $test_mode ? 'test' : 'live';
 
 		$client_id = get_option("trustap_{$this->trustap_api->environment}_client_id");
-
 		$trustap_user_id = get_user_meta($vendor_id, "trustap_{$this->trustap_api->environment}_user_id", true);
-
-		//var_dump($trustap_user_id);
-
-		//delete_user_meta($vendor_id, 'trustap_user_id');
-
-		//var_dump($trustap_user_id);
-
-		//$trustap_user_id = '';
 
 		$is_test_mode = ($this->trustap_api->environment === 'test');
 		$base_url = $is_test_mode ? 'https://app.stage.trustap.com' : 'https://app.trustap.com';
 		$trustap_profile_link = "{$base_url}/profile/payout/personal?edit=true&client_id={$client_id}";
 
+		// Build display HTML
 		if ($trustap_user_id) {
 			$disconnect_url = admin_url('admin-ajax.php?action=wcfm_trustap_disconnect');
-			$vendor_billing_fields += array(
-				$gateway_slug . '_connection' => array(
-					'label' => __('Connect Trustap account', 'wc-multivendor-marketplace'),
-					'type' => 'html',
-					'name' => 'payment[' . $gateway_slug . '][nationality]',
-					'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
-					'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
-					'value' => '<h5>You have connected successfully!</h5><p>Please completed your profile before withdrwa your earnings - <a target="_blank" href="' . $trustap_profile_link . '">Click Here</a></p><a href="' . esc_url($disconnect_url) . '" class="button">Disconnect</a>',
-					'custom_attributes' => array(
-						'required' => 'required'
-					),
-					'hints' => ''
-				),
-			);
+
+			$html = '<div class="trustap-connected">';
+			$html .= '<h5 style="margin:0;">You have connected successfully!</h5>';
+			$html .= '<p>Please complete your Trustap profile before withdrawing earnings: ';
+			$html .= '<a target="_blank" href="' . esc_url($trustap_profile_link) . '">Click Here</a></p>';
+			$html .= '<a href="' . esc_url($disconnect_url) . '" class="button">Disconnect</a>';
+			$html .= '</div>';
 		} else {
-			if (!session_id()) {
+			if (!session_id())
 				session_start();
-			}
 			$_SESSION['trustap_redirect_url'] = home_url($_SERVER['REQUEST_URI']) . '#wcfm_settings_form_payment_head';
 
-			$vendor_billing_fields += array(
-				$gateway_slug . '_connection' => array(
-					'label' => __('Connect Trustap account', 'wc-multivendor-marketplace'),
-					'type' => 'html',
-					'name' => 'payment[' . $gateway_slug . '][nationality]',
-					'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
-					'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
-					// 'value' => $settings['nationality'],
-					'value' => '<a href="' . esc_url($this->get_trustap_auth_url()) . '" class="button">Connect</a>',
-					'custom_attributes' => array(
-						'required' => 'required'
-					),
-					'hints' => '<p>To receive oayouts, you must connect your Trustap account.</p>'
-				),
-			);
+			$html = '<div class="trustap-not-connected">';
+			$html .= '<a href="' . esc_url($this->get_trustap_auth_url()) . '" class="button button-primary">Connect Trustap</a>';
+			$html .= '<p style="margin-top:8px;">To receive payouts, you must connect your Trustap account.</p>';
+			$html .= '</div>';
 		}
 
-
-
-		//TODO: condion wise need to show Connected button with logout button 
-		//TODO: Need to show loading bar and sucsss message
-		//TODO: profile link 
+		// Match the same wrapper and class structure as other gateways
+		$vendor_billing_fields[$gateway_slug . '_connection'] = array(
+			'label' => __('Trustap Account', 'wc-multivendor-marketplace'),
+			'type' => 'html',
+			'class' => 'wcfm-text wcfm_ele paymode_field paymode_' . $gateway_slug . ' ' . $gateway_slug . '_wrapper',
+			'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
+			'value' => $html,
+			'hints' => ''
+		);
 
 		return $vendor_billing_fields;
 	}
 
+
+	/*
+		public function wcfmmp_custom_pg_vendor_setting($vendor_billing_fields, $vendor_id)
+		{
+			$gateway_slug = WCFMTrustap_GATEWAY;
+
+			$vendor_data = get_user_meta($vendor_id, 'wcfmmp_profile_settings', true);
+			$vendor_data = $vendor_data ? $vendor_data : [];
+			$settings = array();
+
+			// $trustap_settings = get_option('woocommerce_trustap_settings', array());
+			// $test_mode = (isset($trustap_settings['testmode']) && $trustap_settings['testmode'] === 'yes') ? true : false;
+			// $environment = $test_mode ? 'test' : 'live';
+
+			$client_id = get_option("trustap_{$this->trustap_api->environment}_client_id");
+
+			$trustap_user_id = get_user_meta($vendor_id, "trustap_{$this->trustap_api->environment}_user_id", true);
+
+			//var_dump($trustap_user_id);
+
+			//delete_user_meta($vendor_id, 'trustap_user_id');
+
+			//var_dump($trustap_user_id);
+
+			//$trustap_user_id = '';
+
+			$is_test_mode = ($this->trustap_api->environment === 'test');
+			$base_url = $is_test_mode ? 'https://app.stage.trustap.com' : 'https://app.trustap.com';
+			$trustap_profile_link = "{$base_url}/profile/payout/personal?edit=true&client_id={$client_id}";
+
+			if ($trustap_user_id) {
+				$disconnect_url = admin_url('admin-ajax.php?action=wcfm_trustap_disconnect');
+				$vendor_billing_fields += array(
+					$gateway_slug . '_connection' => array(
+						'label' => __('Connect Trustap account', 'wc-multivendor-marketplace'),
+						'type' => 'html',
+						'name' => 'payment[' . $gateway_slug . '][nationality]',
+						'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
+						'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
+						'value' => '<h5>You have connected successfully!</h5><p>Please completed your profile before withdrwa your earnings - <a target="_blank" href="' . $trustap_profile_link . '">Click Here</a></p><a href="' . esc_url($disconnect_url) . '" class="button">Disconnect</a>',
+						'custom_attributes' => array(
+							'required' => 'required'
+						),
+						'hints' => ''
+					),
+				);
+			} else {
+				if (!session_id()) {
+					session_start();
+				}
+				$_SESSION['trustap_redirect_url'] = home_url($_SERVER['REQUEST_URI']) . '#wcfm_settings_form_payment_head';
+
+				$vendor_billing_fields += array(
+					$gateway_slug . '_connection' => array(
+						'label' => __('Connect Trustap account', 'wc-multivendor-marketplace'),
+						'type' => 'html',
+						'name' => 'payment[' . $gateway_slug . '][nationality]',
+						'class' => 'wcfm-select wcfm_ele paymode_field paymode_' . $gateway_slug,
+						'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
+						// 'value' => $settings['nationality'],
+						'value' => '<a href="' . esc_url($this->get_trustap_auth_url()) . '" class="button">Connect</a>',
+						'custom_attributes' => array(
+							'required' => 'required'
+						),
+						'hints' => '<p>To receive oayouts, you must connect your Trustap account.</p>'
+					),
+				);
+			}
+
+
+
+			//TODO: condion wise need to show Connected button with logout button 
+			//TODO: Need to show loading bar and sucsss message
+			//TODO: profile link 
+
+			return $vendor_billing_fields;
+		}
+
+	*/
 	public function handle_disconnect_ajax()
 	{
 		if (!is_user_logged_in()) {
