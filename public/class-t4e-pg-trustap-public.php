@@ -180,7 +180,8 @@ class T4e_Pg_Trustap_Public
 				'type' => 'text',
 				'class' => 'wcfm-text wcfm_ele paymode_field paymode_' . $gateway_slug,
 				'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
-				'value' => '$brain_tree'
+				'value' => '$brain_tree',
+				'in_table' => 'yes'
 			),
 		);
 
