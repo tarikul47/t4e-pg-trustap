@@ -173,51 +173,14 @@ class T4e_Pg_Trustap_Public
 			$vendor_data = array();
 		}
 
-		// Trustap environment and meta
-		$trustap_api_env = get_option('trustap_environment', 'test'); // optional fallback
-		$client_id = get_option("trustap_{$trustap_api_env}_client_id");
-		$trustap_user_id = get_user_meta($vendor_id, "trustap_{$trustap_api_env}_user_id", true);
-
-		// Determine environment
-		$is_test_mode = ($trustap_api_env === 'test');
-		$base_url = $is_test_mode ? 'https://app.stage.trustap.com' : 'https://app.trustap.com';
-		$trustap_profile_link = "{$base_url}/profile/payout/personal?edit=true&client_id={$client_id}";
-		$disconnect_url = admin_url('admin-ajax.php?action=wcfm_trustap_disconnect');
-
-		// Prepare button / message
-		if ($trustap_user_id) {
-			// ✅ Vendor already connected
-			$value_html = '<div class="trustap-connected">';
-			$value_html .= '<h5 style="margin:0;">You have connected successfully!</h5>';
-			$value_html .= '<p>Please complete your Trustap profile before withdrawing earnings - ';
-			$value_html .= '<a target="_blank" href="' . esc_url($trustap_profile_link) . '">Click Here</a></p>';
-			$value_html .= '<a href="' . esc_url($disconnect_url) . '" class="button">Disconnect</a>';
-			$value_html .= '</div>';
-		} else {
-			// ❌ Not connected
-			if (!session_id()) {
-				session_start();
-			}
-			$_SESSION['trustap_redirect_url'] = home_url($_SERVER['REQUEST_URI']) . '#wcfm_settings_form_payment_head';
-
-			// get_trustap_auth_url() → replace this with your auth generator method
-			$connect_url = method_exists($this, 'get_trustap_auth_url') ? $this->get_trustap_auth_url() : '#';
-
-			$value_html = '<div class="trustap-not-connected">';
-			$value_html .= '<a href="' . esc_url($connect_url) . '" class="button button-primary">Connect Trustap</a>';
-			$value_html .= '<p style="margin-top:8px;">To receive payouts, you must connect your Trustap account.</p>';
-			$value_html .= '</div>';
-		}
-
-		// ✅ Match WCFM's field structure exactly (like Braintree)
 		$vendor_trustap_field = array(
 			$gateway_slug => array(
-				'label' => __('Trustap Account', 'wc-frontend-manager'),
-				'name' => 'payment[' . $gateway_slug . '][connection]',
-				'type' => 'html',
+				'label' => __('Trustap Connection', 'wc-frontend-manager'),
+				'name' => 'payment[' . $gateway_slug . '][email]',
+				'type' => 'text',
 				'class' => 'wcfm-text wcfm_ele paymode_field paymode_' . $gateway_slug,
 				'label_class' => 'wcfm_title wcfm_ele paymode_field paymode_' . $gateway_slug,
-				'value' => $value_html,
+				'value' => '$brain_tree'
 			),
 		);
 
@@ -226,7 +189,6 @@ class T4e_Pg_Trustap_Public
 
 		return $vendor_billing_fields;
 	}
-
 
 	/*
 		public function wcfmmp_custom_pg_vendor_setting($vendor_billing_fields, $vendor_id)
