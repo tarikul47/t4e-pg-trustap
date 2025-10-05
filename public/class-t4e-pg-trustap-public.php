@@ -242,7 +242,19 @@ class T4e_Pg_Trustap_Public
 			if (!session_id()) {
 				session_start();
 			}
-			$_SESSION['trustap_redirect_url'] = home_url($_SERVER['REQUEST_URI']) . '#wcfm_settings_form_payment_head';
+
+			// Default redirect
+			$redirect_url = home_url($_SERVER['REQUEST_URI']) . '#wcfm_settings_form_payment_head';
+
+			// Check if current URL is from store setup wizard
+			$current_url = home_url(add_query_arg(null, null));
+			if (isset($_GET['store-setup']) && $_GET['store-setup'] === 'yes' && isset($_GET['step']) && $_GET['step'] === 'payment') {
+				$redirect_url = $current_url;
+			}
+
+			$_SESSION['trustap_redirect_url'] = $redirect_url;
+
+			// $_SESSION['trustap_redirect_url'] = home_url($_SERVER['REQUEST_URI']) . '#wcfm_settings_form_payment_head';
 
 			$vendor_billing_fields += array(
 				$gateway_slug . '_connection' => array(
