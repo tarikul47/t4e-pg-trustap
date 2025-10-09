@@ -347,6 +347,85 @@ class T4e_Pg_Trustap_Public
 	{
 		return $this->trustap_api->get_auth_url();
 	}
+
+
+
+	public function t4e_wcfm_main_contentainer_before()
+	{
+		$current_user_id = get_current_user_id();
+
+		if (!$current_user_id) {
+			return;
+		}
+
+		// Detect environment
+		$environment = method_exists($this, 'trustap_api') && isset($this->trustap_api->environment)
+			? $this->trustap_api->environment
+			: 'live';
+
+		// Get Trustap ID
+		$trustap_user_id = get_user_meta($current_user_id, "trustap_{$environment}_user_id", true);
+
+		// Show notice if not connected
+		if (empty($trustap_user_id)) {
+			?>
+			<div class="trustap-warning-box">
+				<div class="trustap-warning-icon">
+					<span class="wcfmfa fa-exclamation-triangle"></span>
+				</div>
+				<div class="trustap-warning-content">
+					<strong>Warning</strong><br>
+					You haven’t connected your <strong>Trustap</strong> account yet. Please connect it to receive payouts.
+					<br><br>
+					<a href="<?php echo esc_url(get_wcfm_settings_url() . '#wcfm_settings_form_payment_head'); ?>"
+						class="wcfm-button button">
+						Connect Now
+					</a>
+				</div>
+			</div>
+
+			<style>
+				.trustap-warning-box {
+					display: flex;
+					align-items: center;
+					background-color: #ffa726;
+					/* orange background */
+					color: #fff;
+					border-left: 6px solid #e65100;
+					/* darker orange border */
+					padding: 16px 20px;
+					margin: 20px 0;
+					border-radius: 6px;
+					font-size: 15px;
+				}
+
+				.trustap-warning-icon {
+					font-size: 28px;
+					margin-right: 15px;
+					color: #fff;
+				}
+
+				.trustap-warning-content a.button {
+					background: #fff;
+					color: #e65100;
+					border: none;
+					border-radius: 4px;
+					padding: 6px 12px;
+					font-weight: 600;
+					text-decoration: none;
+				}
+
+				.trustap-warning-content a.button:hover {
+					background: #f5f5f5;
+					color: #bf360c;
+				}
+			</style>
+			<?php
+		}
+	}
+
+
+
 	/**
 	 * Register the stylesheets for the public-facing side of the site.
 	 *

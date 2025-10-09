@@ -112,3 +112,4 @@ function run_t4e_pg_trustap()
 
 }
 add_action('plugins_loaded', 'run_t4e_pg_trustap', 20);
+
