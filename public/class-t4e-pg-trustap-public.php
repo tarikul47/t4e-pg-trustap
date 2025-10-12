@@ -425,6 +425,28 @@ class T4e_Pg_Trustap_Public
 					line-height: 25px;
 				}
 			</style>
+
+			<script>
+				jQuery(document).ready(function ($) {
+
+					// Handle clicks on both Add New buttons
+					$(document).on('click', '#add_new_product_dashboard, .wcfm_sub_menu_items_product_manage a', function (e) {
+						e.preventDefault();
+
+						// Show toast if available (WCFM notification)
+						if (typeof wcfm_notification_message === 'function') {
+							wcfm_notification_message('warning', '⚠️ Please connect your Trustap account before adding a product.');
+						} else {
+							alert('⚠️ Please connect your Trustap account before adding a product.');
+						}
+
+						// Optional: Redirect after 2 seconds to Payment Settings
+						setTimeout(function () {
+							window.location.href = "<?php echo esc_url(get_wcfm_settings_url() . '#wcfm_settings_form_payment_head'); ?>";
+						}, 2000);
+					});
+				});
+			</script>
 			<?php
 		}
 	}
