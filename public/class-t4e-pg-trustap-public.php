@@ -377,7 +377,7 @@ class T4e_Pg_Trustap_Public
 					<strong>Warning</strong><br>
 					You haven’t connected your <strong>Trustap</strong> account yet. Please connect it to receive payouts.
 					<br><br>
-					<a href="<?php echo esc_url(get_wcfm_settings_url() . '#wcfm_settings_form_payment_head'); ?>"
+					<a target="_self" href="<?php echo esc_url(get_wcfm_settings_url() . '#wcfm_settings_form_payment_head'); ?>"
 						class="wcfm-button button">
 						Connect Now
 					</a>
