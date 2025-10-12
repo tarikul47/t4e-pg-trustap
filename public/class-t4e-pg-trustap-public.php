@@ -397,6 +397,7 @@ class T4e_Pg_Trustap_Public
 					margin: 20px 0;
 					border-radius: 6px;
 					font-size: 15px;
+					gap: 10px;
 				}
 
 				.trustap-warning-icon {
@@ -418,6 +419,10 @@ class T4e_Pg_Trustap_Public
 				.trustap-warning-content a.button:hover {
 					background: #f5f5f5;
 					color: #bf360c;
+				}
+
+				.trustap-warning-content strong {
+					line-height: 25px;
 				}
 			</style>
 			<?php
