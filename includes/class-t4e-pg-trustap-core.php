@@ -32,6 +32,14 @@ class T4e_Pg_Trustap_Core {
 		$order_id = $request->get_param('orderId');
 		$order = wc_get_order($order_id);
 
+		if (!$order) {
+			return new WP_Error(
+				'invalid_order',
+				'Order not found.',
+				array('status' => 404)
+			);
+		}
+
 		$result = $this->confirm_handover($order);
 
 		if (is_wp_error($result)) {

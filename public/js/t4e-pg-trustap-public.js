@@ -18,12 +18,13 @@
       $.ajax({
         url: t4e_pg_trustap_public_data.confirm_handover_url,
         method: 'POST',
+        contentType: 'application/json',
         beforeSend: function (xhr) {
           xhr.setRequestHeader('X-WP-Nonce', t4e_pg_trustap_public_data.nonce);
         },
-        data: {
+        data: JSON.stringify({
           orderId: $(this).data('order-id')
-        },
+        }),
         success: function (response) {
           if (response.success) {
             $messageDiv.css('color', 'green').text('Handover confirmed successfully! Page will reload.');
