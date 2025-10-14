@@ -251,12 +251,9 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 
 	public function wcfm_show_handover_button($order)
 	{
-		//var_dump($order->id);
-		//$order = wc_get_order($order_id);
-		
-		// if (!$order || !$order->has_status('handoverpending')) {
-		// 	return;
-		// }
+		if (!$order || !$order->has_status('handoverpending')) {
+			return;
+		}
 
 		include_once(plugin_dir_path(__FILE__) . 'partials/wcfm-confirm-handover.php');
 	}
@@ -268,14 +265,13 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 	}
 
 	public function enqueue_scripts()
+	{
+		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/t4e-pg-trustap-public.js', array('jquery'), $this->version, true);
 
-		{
-			wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/t4e-pg-trustap-public.js', array('jquery'), $this->version, true);
-
-			$localized_data = array(
-				'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
-				'nonce' => wp_create_nonce('wp_rest'),
-			);
-			wp_localize_script($this->plugin_name, 't4e_pg_trustap_public_data', $localized_data);
-		}
+		$localized_data = array(
+			'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
+			'nonce' => wp_create_nonce('wp_rest'),
+		);
+		wp_localize_script($this->plugin_name, 't4e_pg_trustap_public_data', $localized_data);
+	}
 }
