@@ -22,7 +22,7 @@
           xhr.setRequestHeader('X-WP-Nonce', t4e_pg_trustap_public_data.nonce);
         },
         data: {
-          orderId: t4e_pg_trustap_public_data.order_id
+          orderId: $(this).data('order-id')
         },
         success: function (response) {
           if (response.success) {
