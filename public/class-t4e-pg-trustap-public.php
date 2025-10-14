@@ -51,11 +51,12 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 	 * @param      string    $version    The version of this plugin.
 	 * @param      T4e_Pg_Trustap_OAuth_Handler    $oauth_handler    The OAuth handler instance.
 	 */
-	public function __construct($plugin_name, $version, $oauth_handler)
+	public function __construct($plugin_name, $version, $oauth_handler, $trustap_api)
 	{
 
-		parent::__construct($plugin_name, $version);
+		parent::__construct($plugin_name, $version, $trustap_api);
 		$this->oauth_handler = $oauth_handler;
+		
 
 		// WCFM handover confirmed button show 
 		add_action('wcfm_order_details_after_order_table', array($this, 'wcfm_show_handover_button'), 10, 1);
@@ -78,7 +79,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 
 		$trustap_user_id = get_user_meta($vendor_id, "trustap_{$this->trustap_api->environment}_user_id", true);
 
-		//var_dump($trustap_user_id);
+		var_dump($trustap_user_id);
 
 		//delete_user_meta($vendor_id, 'trustap_user_id');
 
@@ -160,13 +161,8 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 			return;
 		}
 
-		// Detect environment
-		$environment = method_exists($this, 'trustap_api') && isset($this->trustap_api->environment)
-			? $this->trustap_api->environment
-			: 'live';
-
 		// Get Trustap ID
-		$trustap_user_id = get_user_meta($current_user_id, "trustap_{$environment}_user_id", true);
+		$trustap_user_id = get_user_meta($current_user_id, "trustap_{$this->trustap_api->environment}_user_id", true);
 
 		// Show notice if not connected
 		if (empty($trustap_user_id)) {

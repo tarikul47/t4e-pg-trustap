@@ -4,8 +4,8 @@ class T4e_Pg_Trustap_OAuth_Handler {
 
     private $trustap_api;
 
-    public function __construct() {
-        $this->trustap_api = new WCFM_Trustap_API();
+    public function __construct($trustap_api) {
+        $this->trustap_api = $trustap_api;
         add_action('wp_ajax_wcfm_trustap_oauth_callback', array($this, 'handle_oauth_callback_ajax'));
         add_action('wp_ajax_wcfm_trustap_disconnect', array($this, 'handle_disconnect_ajax'));
     }

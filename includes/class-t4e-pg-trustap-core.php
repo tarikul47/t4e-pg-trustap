@@ -9,11 +9,11 @@ class T4e_Pg_Trustap_Core {
     protected $helper;
     protected $controller;
 
-    public function __construct($plugin_name, $version) {
+    public function __construct($plugin_name, $version, $trustap_api) {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
         $this->helper = new WCFM_Trustap_Helper();
-        $this->trustap_api = new WCFM_Trustap_API();
+        $this->trustap_api = $trustap_api;
         $this->controller = new AbstractController('trustap/v1');
         add_action('rest_api_init', array($this, 'register_routes'));
     }

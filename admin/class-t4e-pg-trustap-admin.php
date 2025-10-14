@@ -52,10 +52,10 @@ class T4e_Pg_Trustap_Admin extends T4e_Pg_Trustap_Core
 	 */
 
 
-	public function __construct($plugin_name, $version)
+	public function __construct($plugin_name, $version, $trustap_api)
 	{
 
-		parent::__construct($plugin_name, $version);
+		parent::__construct($plugin_name, $version, $trustap_api);
 
 	}
  
