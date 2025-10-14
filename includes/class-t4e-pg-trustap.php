@@ -59,6 +59,15 @@ class T4e_Pg_Trustap
 	protected $version;
 
 	/**
+	 * The OAuth handler for the plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   protected
+	 * @var      T4e_Pg_Trustap_OAuth_Handler    $oauth_handler    Handles OAuth2 flow.
+	 */
+	protected $oauth_handler;
+
+	/**
 	 * Define the core functionality of the plugin.
 	 *
 	 * Set the plugin name and the plugin version that can be used throughout the plugin.
@@ -133,6 +142,7 @@ class T4e_Pg_Trustap
 		 */
 		require_once plugin_dir_path(dirname(__FILE__)) . 'public/class-t4e-pg-trustap-public.php';
 
+		$this->oauth_handler = new T4e_Pg_Trustap_OAuth_Handler();
 		$this->loader = new T4e_Pg_Trustap_Loader();
 		$this->loader->add_action('wcfm_init', $this, 'load_wcfm_gateway', 10);
 	}
@@ -195,7 +205,7 @@ class T4e_Pg_Trustap
 	private function define_public_hooks()
 	{
 
-		$plugin_public = new T4e_Pg_Trustap_Public($this->get_plugin_name(), $this->get_version());
+		$plugin_public = new T4e_Pg_Trustap_Public($this->get_plugin_name(), $this->get_version(), $this->oauth_handler);
 
 
 		$this->loader->add_filter('wcfm_marketplace_settings_fields_billing', $plugin_public, 'wcfmmp_custom_pg_vendor_setting', 50, 2);

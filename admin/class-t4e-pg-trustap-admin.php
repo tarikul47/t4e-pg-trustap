@@ -24,7 +24,7 @@ use Trustap\PaymentGateway\Enumerators\Uri as UriEnumerator;
  * @subpackage T4e_Pg_Trustap/admin
  * @author     Tarikul Islam <tarikul47@gmail.com>
  */
-class T4e_Pg_Trustap_Admin
+class T4e_Pg_Trustap_Admin extends T4e_Pg_Trustap_Core
 {
 
 	/**
@@ -34,7 +34,6 @@ class T4e_Pg_Trustap_Admin
 	 * @access   private
 	 * @var      string    $plugin_name    The ID of this plugin.
 	 */
-	private $plugin_name;
 
 	/**
 	 * The version of this plugin.
@@ -43,12 +42,6 @@ class T4e_Pg_Trustap_Admin
 	 * @access   private
 	 * @var      string    $version    The current version of this plugin.
 	 */
-	private $version;
-
-	private $trustap_api;
-
-
-	private $helper;
 
 	/**
 	 * Initialize the class and set its properties.
@@ -58,81 +51,12 @@ class T4e_Pg_Trustap_Admin
 	 * @param      string    $version    The version of this plugin.
 	 */
 
-	protected $controller;
 
 	public function __construct($plugin_name, $version)
 	{
 
-		$this->plugin_name = $plugin_name;
-		$this->version = $version;
-		$this->helper = new WCFM_Trustap_Helper();
-		$this->trustap_api = new WCFM_Trustap_API();
-		$this->controller = new AbstractController('trustap/v1');
-		add_action('rest_api_init', array($this, 'register_routes'));
+		parent::__construct($plugin_name, $version);
 
-	}
-
-	public function register_routes()
-	{
-		register_rest_route('t4e-pg-trustap/v1', '/confirm-handover', array(
-			'methods' => 'POST',
-			'callback' => array($this, 't4e_confirm_handover'),
-			'permission_callback' => '__return_true' // Adjust permissions as needed
-		));
-	}
-
-	public function t4e_confirm_handover($request)
-	{
-		$order_id = $request->get_param('orderId');
-		$order = wc_get_order($order_id);
-		$transaction_id = $order->get_meta('trustap_transaction_ID');
-
-		$seller_trustap_id = $this->helper->get_trustap_seller_id($order->get_items());
-
-		if (is_wp_error($seller_trustap_id)) {
-			return new WP_Error(
-				'no_seller_trustap_id',
-				$seller_trustap_id->get_error_message(),
-				array('status' => 400)
-			);
-		}
-
-		if (empty($seller_trustap_id)) {
-			return new WP_Error(
-				'no_seller_trustap_id',
-				'Seller Trustap ID not found for order #' . $order->get_id(),
-				array('status' => 400)
-			);
-		}
-
-		$data = ['transactionId' => $transaction_id];
-		$raw_response = $this->controller->post_request(
-			"p2p/transactions/{$transaction_id}/confirm_handover",
-			$seller_trustap_id,
-			//$data
-			[]
-		);
-
-		$response_status = $raw_response['response']['code'];
-		$response_body = json_decode($raw_response['body'], true);
-
-		if ($response_status != 200) {
-			return new WP_Error(
-				'handover_failed',
-				$response_body['message'] ?? 'Handover confirmation failed.',
-				array('status' => $response_status)
-			);
-		}
-
-		$order->update_status('handoverconfirmed');
-
-		return new WP_REST_Response(
-			array(
-				'success' => true,
-				'message' => 'Handover confirmed successfully.'
-			),
-			200
-		);
 	}
  
 
@@ -157,6 +81,8 @@ class T4e_Pg_Trustap_Admin
 		if (!$order->has_status('handoverpending')) {
 			return;
 		}
+
+		$this->enqueue_scripts($order->get_id());
 
 		add_meta_box(
 			't4e-trustap-confirm-handover-meta-box_ffnnn',
@@ -325,28 +251,19 @@ class T4e_Pg_Trustap_Admin
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts()
+	public function enqueue_scripts($order_id = null)
 	{
-
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in T4e_Pg_Trustap_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The T4e_Pg_Trustap_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
 
 		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/t4e-pg-trustap-admin.js', array('jquery'), $this->version, true);
 
-		$localized_data = array(
-			'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
-			'nonce' => wp_create_nonce('wp_rest')
-		);
-		wp_localize_script($this->plugin_name, 't4e_pg_trustap_admin_data', $localized_data);
+		if ($order_id) {
+			$localized_data = array(
+				'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
+				'nonce' => wp_create_nonce('wp_rest'),
+				'order_id' => $order_id
+			);
+			wp_localize_script($this->plugin_name, 't4e_pg_trustap_admin_data', $localized_data);
+		}
 
 	}
 

@@ -16,12 +16,8 @@ if (!defined('ABSPATH')) {
         );
         ?>
     </p>
-    <form method="post" onsubmit="return confirm('Are you sure you want to confirm handover?');" action="">
-        <input type="hidden" name="order_id" value="<?php echo esc_attr($order->get_id()); ?>">
-        <input type="hidden" name="trustap_confirm_handover_vendor" value="true">
-        <?php wp_nonce_field('trustap_confirm_handover_vendor_nonce', 'trustap_confirm_handover_vendor_nonce_field'); ?>
-        <button type="submit" class="wcfm_submit_button">
-            <?php echo esc_html__("Confirm Handover", "t4e-pg-trustap"); ?>
-        </button>
-    </form>
+    <button type="button" id="t4e-confirm-handover-button" class="wcfm_submit_button">
+        <?php echo esc_html__("Confirm Handover", "t4e-pg-trustap"); ?>
+    </button>
+    <div id="t4e-handover-message" style="margin-top: 10px;"></div>
 </div>
