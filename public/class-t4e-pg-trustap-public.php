@@ -33,15 +33,6 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 	 * @var      string    $plugin_name    The ID of this plugin.
 	 */
 
-	private $version;
-
-	/**
-	 * The OAuth handler for the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
-	 * @var      T4e_Pg_Trustap_OAuth_Handler    $oauth_handler    Handles OAuth2 flow.
-	 */
 	private $oauth_handler;
 
 	/**
@@ -71,9 +62,15 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 
 	}
 
+	public function enqueue_styles()
+	{
+		// Enqueue public-facing styles here.
+	}
+
 	public function wcfm_show_handover_button($order_id)
 	{
-		if (!$order->has_status('handoverpending')) {
+		$order = wc_get_order($order_id);
+		if (!$order || !$order->has_status('handoverpending')) {
 			return;
 		}
 
