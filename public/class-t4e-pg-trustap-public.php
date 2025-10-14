@@ -62,9 +62,105 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 
 	}
 
-	public function enqueue_styles()
+	public function t4e_wcfm_main_contentainer_before()
 	{
-		// Enqueue public-facing styles here.
+		$current_user_id = get_current_user_id();
+
+		if (!$current_user_id) {
+			return;
+		}
+
+		// Detect environment
+		$environment = method_exists($this, 'trustap_api') && isset($this->trustap_api->environment)
+			? $this->trustap_api->environment
+			: 'live';
+
+		// Get Trustap ID
+		$trustap_user_id = get_user_meta($current_user_id, "trustap_{$environment}_user_id", true);
+
+		// Show notice if not connected
+		if (empty($trustap_user_id)) {
+			?>
+			<div class="trustap-warning-box">
+				<div class="trustap-warning-icon">
+					<span class="wcfmfa fa-exclamation-triangle"></span>
+				</div>
+				<div class="trustap-warning-content">
+					<strong>Warning</strong><br>
+					You haven’t connected your <strong>Trustap</strong> account yet. Please connect it to receive payouts.
+					<br><br>
+					<a target="_self" href="<?php echo esc_url(get_wcfm_settings_url() . '#wcfm_settings_form_payment_head'); ?>"
+						class="wcfm-button button">
+						Connect Now
+					</a>
+				</div>
+			</div>
+
+			<style>
+				.trustap-warning-box {
+					display: flex;
+					align-items: center;
+					background-color: #ffa726;
+					/* orange background */
+					color: #fff;
+					border-left: 6px solid #e65100;
+					/* darker orange border */
+					padding: 16px 20px;
+					margin: 20px 0;
+					border-radius: 6px;
+					font-size: 15px;
+					gap: 10px;
+				}
+
+				.trustap-warning-icon {
+					font-size: 28px;
+					margin-right: 15px;
+					color: #fff;
+				}
+
+				.trustap-warning-content a.button {
+					background: #fff;
+					color: #e65100;
+					border: none;
+					border-radius: 4px;
+					padding: 6px 12px;
+					font-weight: 600;
+					text-decoration: none;
+				}
+
+				.trustap-warning-content a.button:hover {
+					background: #f5f5f5;
+					color: #bf360c;
+				}
+
+				.trustap-warning-content strong {
+					line-height: 25px;
+				}
+			</style>
+
+			<script>
+				jQuery(document).ready(function ($) {
+
+					// Handle clicks on both Add New buttons
+					$(document).on('click', '#add_new_product_dashboard, .wcfm_sub_menu_items_product_manage a', function (e) {
+						e.preventDefault();
+
+						// Show toast if available (WCFM notification)
+						if (typeof wcfm_notification_message === 'function') {
+							wcfm_notification_message('warning', '⚠️ Please connect your Trustap account before adding a product.');
+						} else {
+							alert('⚠️ Please connect your Trustap account before adding a product.');
+						}
+
+						// Optional: Redirect after 2 seconds to Payment Settings
+						setTimeout(function () {
+							window.location.href = "<?php echo esc_url(get_wcfm_settings_url() . '#wcfm_settings_form_payment_head'); ?>";
+						}, 2000);
+					});
+				});
+			</script>
+			<?php
+		}
 	}
 
 	public function wcfm_show_handover_button($order_id)
@@ -77,6 +173,12 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 		$this->enqueue_scripts($order_id);
 
 		include_once(plugin_dir_path(__FILE__) . 'partials/wcfm-confirm-handover.php');
+	}
+
+	public function enqueue_styles()
+	{
+		// Enqueue public-facing styles here.
+		wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/t4e-pg-trustap-public.css', array(), $this->version, 'all');
 	}
 
 	public function enqueue_scripts($order_id = null)
