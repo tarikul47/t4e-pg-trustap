@@ -249,14 +249,14 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 		}
 	}
 
-	public function wcfm_show_handover_button($order_id)
+	public function wcfm_show_handover_button($order)
 	{
-		$order = wc_get_order($order_id);
-		if (!$order || !$order->has_status('handoverpending')) {
-			return;
-		}
-
-		$this->enqueue_scripts();
+		//var_dump($order->id);
+		//$order = wc_get_order($order_id);
+		
+		// if (!$order || !$order->has_status('handoverpending')) {
+		// 	return;
+		// }
 
 		include_once(plugin_dir_path(__FILE__) . 'partials/wcfm-confirm-handover.php');
 	}
