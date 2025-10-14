@@ -56,7 +56,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 
 		parent::__construct($plugin_name, $version, $trustap_api);
 		$this->oauth_handler = $oauth_handler;
-		
+
 
 		// WCFM handover confirmed button show 
 		add_action('wcfm_order_details_after_order_table', array($this, 'wcfm_show_handover_button'), 10, 1);
@@ -256,8 +256,6 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 			return;
 		}
 
-		$this->enqueue_scripts($order_id);
-
 		include_once(plugin_dir_path(__FILE__) . 'partials/wcfm-confirm-handover.php');
 	}
 
@@ -267,20 +265,16 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 		wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/t4e-pg-trustap-public.css', array(), $this->version, 'all');
 	}
 
-	public function enqueue_scripts($order_id = null)
+	public function enqueue_scripts()
 	{
 
 		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/t4e-pg-trustap-public.js', array('jquery'), $this->version, true);
 
-		if ($order_id) {
-			$localized_data = array(
-				'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
-				'nonce' => wp_create_nonce('wp_rest'),
-				'order_id' => $order_id
-			);
-			wp_localize_script($this->plugin_name, 't4e_pg_trustap_public_data', $localized_data);
-		}
-
+		$localized_data = array(
+			'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
+			'nonce' => wp_create_nonce('wp_rest'),
+		);
+		wp_localize_script($this->plugin_name, 't4e_pg_trustap_public_data', $localized_data);
 	}
 
 }

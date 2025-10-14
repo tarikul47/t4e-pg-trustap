@@ -82,8 +82,6 @@ class T4e_Pg_Trustap_Admin extends T4e_Pg_Trustap_Core
 			return;
 		}
 
-		$this->enqueue_scripts($order->get_id());
-
 		add_meta_box(
 			't4e-trustap-confirm-handover-meta-box_ffnnn',
 			'Trustap Handover Custopmmm',
@@ -250,7 +248,7 @@ class T4e_Pg_Trustap_Admin extends T4e_Pg_Trustap_Core
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts($order_id = null)
+	public function enqueue_scripts()
 	{
 
 		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/t4e-pg-trustap-admin.js', array('jquery'), $this->version, true);
