@@ -413,29 +413,33 @@ class Service_Override
 
     public function confirm_handover($transaction_id, $order)
     {
+        $seller_trustap_id = $this->helper->get_trustap_seller_id($order->get_items());
+
+        if (is_wp_error($seller_trustap_id)) {
+            return $seller_trustap_id;
+        }
+
+        if (empty($seller_trustap_id)) {
+            return new WP_Error(
+                'no_seller_trustap_id',
+                'Seller Trustap ID not found for order #' . $order->get_id(),
+                array('status' => 400)
+            );
+        }
 
         try {
 
-            $this->post_request(
-
+            $this->controller->post_request(
                 "p2p/transactions/{$transaction_id}/confirm_handover",
-
-                $this->seller_id,
-
-                ''
-
+                $seller_trustap_id,
+                []
             );
 
         } catch (Exception $exception) {
-
             $order->add_order_note(
-
                 __('Confirm handover manually.', 'trustap-payment-gateway'),
-
                 false
-
             );
-
             return wp_redirect($this->wc_payment_gateway->get_return_url($order));
 
         }
