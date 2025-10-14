@@ -8,7 +8,7 @@
             ?>
     </p>
     <button id="t4e-confirm-handover-button" class="button-primary" type="button" onclick="t4eConfirmHandover()">
-        <?php echo esc_html__("Confirm Handover (Custom)", "trustap-payment-gateway") ?>
+        <?php echo esc_html__("Confirm Handover", "trustap-payment-gateway") ?>
     </button>
     <div id="t4e-handover-spinner" style="display: none;">
         <div class="t4e-spinner"></div>
