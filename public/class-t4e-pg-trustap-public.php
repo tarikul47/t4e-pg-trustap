@@ -79,7 +79,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 
 		$trustap_user_id = get_user_meta($vendor_id, "trustap_{$this->trustap_api->environment}_user_id", true);
 
-		var_dump($trustap_user_id);
+		//var_dump($trustap_user_id);
 
 		//delete_user_meta($vendor_id, 'trustap_user_id');
 
