@@ -22,6 +22,26 @@ class T4e_Pg_Trustap_OAuth_Handler
 
         delete_user_meta($user_id, "trustap_{$this->trustap_api->environment}_user_id");
 
+        // Remove payment method if currently set to Trustap
+        $vendor_data = get_user_meta($user_id, 'wcfmmp_profile_settings', true);
+        $vendor_data = is_array($vendor_data) ? $vendor_data : [];
+
+        if (isset($vendor_data['payment']['method'])) {
+            $gateway_slug = defined('WCFMTrustap_GATEWAY') ? WCFMTrustap_GATEWAY : 'trustap';
+
+            // Only clear if the vendor's current payment method is Trustap
+            if ($vendor_data['payment']['method'] === $gateway_slug) {
+                unset($vendor_data['payment']['method']);
+            }
+        }
+
+        // Optionally clear Trustap-specific data under 'payment'
+        if (isset($vendor_data['payment'][$gateway_slug])) {
+            unset($vendor_data['payment'][$gateway_slug]);
+        }
+
+        update_user_meta($user_id, 'wcfmmp_profile_settings', $vendor_data);
+
         $redirect_url = get_wcfm_settings_url() . '#wcfm_settings_form_payment_head';
 
         wp_redirect($redirect_url);
