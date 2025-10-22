@@ -1,16 +1,19 @@
 <?php
 
-class T4e_Pg_Trustap_OAuth_Handler {
+class T4e_Pg_Trustap_OAuth_Handler
+{
 
     private $trustap_api;
 
-    public function __construct($trustap_api) {
+    public function __construct($trustap_api)
+    {
         $this->trustap_api = $trustap_api;
         add_action('wp_ajax_wcfm_trustap_oauth_callback', array($this, 'handle_oauth_callback_ajax'));
         add_action('wp_ajax_wcfm_trustap_disconnect', array($this, 'handle_disconnect_ajax'));
     }
 
-    public function handle_disconnect_ajax() {
+    public function handle_disconnect_ajax()
+    {
         if (!is_user_logged_in()) {
             wp_die('You must be logged in to perform this action.');
         }
@@ -25,7 +28,8 @@ class T4e_Pg_Trustap_OAuth_Handler {
         exit;
     }
 
-    public function handle_oauth_callback_ajax() {
+    public function handle_oauth_callback_ajax()
+    {
         $logger = wc_get_logger();
         $context = array('source' => 't4e-pg-trustap');
 
@@ -39,6 +43,25 @@ class T4e_Pg_Trustap_OAuth_Handler {
 
         if (isset($code) && isset($state)) {
             if ($this->trustap_api->handle_oauth_callback($code, $state)) {
+
+                // Save payment method dynamically after successful connection
+                $user_id = get_current_user_id();
+
+                $vendor_data = get_user_meta($user_id, 'wcfmmp_profile_settings', true);
+                $vendor_data = is_array($vendor_data) ? $vendor_data : [];
+
+                // Ensure keys exist
+                $vendor_data['payment'] = $vendor_data['payment'] ?? [];
+
+                // Set payment method dynamically using gateway slug
+                $gateway_slug = defined('WCFMTrustap_GATEWAY') ? WCFMTrustap_GATEWAY : 'trustap';
+                $vendor_data['payment']['method'] = $gateway_slug;
+
+                // Optionally store Trustap user ID or meta as well
+                // $vendor_data['payment'][$gateway_slug]['trustap_user_id'] = $this->trustap_api->get_user_id();
+
+                update_user_meta($user_id, 'wcfmmp_profile_settings', $vendor_data);
+
                 if (!session_id()) {
                     session_start();
                 }
@@ -57,7 +80,8 @@ class T4e_Pg_Trustap_OAuth_Handler {
         }
     }
 
-    public function get_trustap_auth_url() {
+    public function get_trustap_auth_url()
+    {
         return $this->trustap_api->get_auth_url();
     }
 }
