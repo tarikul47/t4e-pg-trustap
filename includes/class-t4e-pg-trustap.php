@@ -225,6 +225,8 @@ class T4e_Pg_Trustap
 		$this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
 		$this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
 
+		$this->loader->add_action('woocommerce_order_details_after_order_table', $plugin_public, 'display_trustap_transaction_details', 20);
+
 	}
 
 	/**
