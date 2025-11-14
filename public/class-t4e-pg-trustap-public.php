@@ -42,6 +42,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 	 * @access   private
 	 * @var      WCFM_Trustap_API    $trustap_api    The Trustap API instance.
 	 */
+	private $trustap_service;
 
 	/**
 	 * Initialize the class and set its properties.
@@ -56,6 +57,11 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 
 		parent::__construct($plugin_name, $version, $trustap_api);
 		$this->oauth_handler = $oauth_handler;
+
+		$gateways = WC()->payment_gateways->payment_gateways();
+		if (isset($gateways['trustap'])) {
+			$this->trustap_service = new \Trustap\PaymentGateway\Core\Service($gateways['trustap'], new \Trustap\PaymentGateway\Controller\AbstractController('trustap/v1'));
+		}
 
 
 		// WCFM handover confirmed button show 
@@ -275,101 +281,104 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 		wp_localize_script($this->plugin_name, 't4e_pg_trustap_public_data', $localized_data);
 	}
 
-	public function display_trustap_transaction_details($order_id, $order, $line_items)
+	public function save_trustap_transaction_details_on_payment_complete($order_id)
     {
-        $logger = wc_get_logger();
-        $context = ['source' => 't4e-pg-trustap'];
+        $order = wc_get_order($order_id);
+        if ($order->get_payment_method() !== 'trustap') {
+            return;
+        }
 
-        if (is_a($order, 'WC_Order') && $order->get_payment_method() === 'trustap') {
-            $logger->info('Order ID: ' . $order->get_id() . ' - Matched for display.', $context);
+        $transaction_id = $order->get_meta('trustap_transaction_ID');
+        if (!$transaction_id) {
+            return;
+        }
 
-            $transaction_id = $order->get_meta('trustap_transaction_ID');
-            if (!$transaction_id) {
-                $logger->info('Order ID: ' . $order->get_id() . ' - No trustap_transaction_ID found.', $context);
-                return;
+        $model = $order->get_meta('model');
+        $type = (strpos($model, 'p2p') !== false) ? 'p2p' : '';
+
+        if ($this->trustap_service) {
+            $transaction_details = $this->trustap_service->get_transaction($type, $transaction_id);
+            if ($transaction_details && !is_wp_error($transaction_details)) {
+                $order->update_meta_data('_trustap_transaction_details', $transaction_details);
+                $order->save();
             }
-            $logger->info('Order ID: ' . $order->get_id() . ' - Transaction ID: ' . $transaction_id, $context);
+        }
+    }
 
-            $gateways = WC()->payment_gateways->get_available_payment_gateways();
-            if (!isset($gateways['trustap']) || !property_exists($gateways['trustap'], 'my_custom_service')) {
-                $logger->error('Order ID: ' . $order->get_id() . ' - Trustap gateway or my_custom_service not found.', $context);
-                return;
-            }
+	public function display_trustap_transaction_details($order_id)
+    {
+        $order = wc_get_order($order_id);
+        if (!$order || $order->get_payment_method() !== 'trustap') {
+            return;
+        }
 
-            $trustap_gateway = $gateways['trustap'];
-            $service_override = $trustap_gateway->my_custom_service;
+        $transaction_details = $order->get_meta('_trustap_transaction_details');
 
-            $model = $order->get_meta('model');
-            $type = (strpos($model, 'p2p') !== false) ? 'p2p' : '';
-            $logger->info('Order ID: ' . $order->get_id() . ' - Model: ' . $model . ' | Type: ' . $type, $context);
+        if (empty($transaction_details)) {
+            return;
+        }
+        
+        ?>
+        <div class="wcfm-clearfix"></div>
+        <br />
+        <div class="wcfm-container">
+            <div class="wcfm-content">
+                <h2><?php _e('Trustap Transaction Details', 't4e-pg-trustap'); ?></h2>
+                <?php
+                if ($transaction_details && isset($transaction_details['status'])) {
 
-            $transaction_details = $service_override->get_transaction($type, $transaction_id);
-            
-            $logger->info('Order ID: ' . $order->get_id() . ' - API Response: ' . print_r($transaction_details, true), $context);
+                    // Assuming field names based on user request. These may need to be adjusted based on the actual API response.
+                    $amount_paid = isset($transaction_details['purchase_price']) ? wc_price($transaction_details['purchase_price'] / 100) : 'N/A';
+                    $buyer_fees = isset($transaction_details['buyer_fee']) ? wc_price($transaction_details['buyer_fee'] / 100) : 'N/A';
+                    $seller_fees = isset($transaction_details['seller_fee']) ? wc_price($transaction_details['seller_fee'] / 100) : 'N/A';
+                    $expected_payout = isset($transaction_details['payout_amount']) ? wc_price($transaction_details['payout_amount'] / 100) : 'N/A';
+                    $status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
+                    $funds_released = isset($transaction_details['release_amount']) ? wc_price($transaction_details['release_amount'] / 100) : 'N/A';
+                    $international_payment_fee = isset($transaction_details['international_payment_fee']) ? wc_price($transaction_details['international_payment_fee'] / 100) : 'N/A'; // This is a guess
 
-            ?>
-            <div class="wcfm-clearfix"></div>
-            <br />
-            <div class="wcfm-container">
-                <div class="wcfm-content">
-                    <h2><?php _e('Trustap Transaction Details', 't4e-pg-trustap'); ?></h2>
-                    <?php
-                    if ($transaction_details && !is_wp_error($transaction_details) && isset($transaction_details['status'])) {
-
-                        // Assuming field names based on user request. These may need to be adjusted based on the actual API response.
-                        $amount_paid = isset($transaction_details['purchase_price']) ? wc_price($transaction_details['purchase_price'] / 100) : 'N/A';
-                        $buyer_fees = isset($transaction_details['buyer_fee']) ? wc_price($transaction_details['buyer_fee'] / 100) : 'N/A';
-                        $seller_fees = isset($transaction_details['seller_fee']) ? wc_price($transaction_details['seller_fee'] / 100) : 'N/A';
-                        $expected_payout = isset($transaction_details['payout_amount']) ? wc_price($transaction_details['payout_amount'] / 100) : 'N/A';
-                        $status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
-                        $funds_released = isset($transaction_details['release_amount']) ? wc_price($transaction_details['release_amount'] / 100) : 'N/A';
-                        $international_payment_fee = isset($transaction_details['international_payment_fee']) ? wc_price($transaction_details['international_payment_fee'] / 100) : 'N/A'; // This is a guess
-
-                        if ($status === 'Funds Released') {
-                            echo '<p><strong>' . __('Transaction Complete!', 't4e-pg-trustap') . '</strong> ' . __('We have released the funds. Depending on your bank, they should be available in 5-7 working days.', 't4e-pg-trustap') . '</p>';
-                        }
-                        ?>
-                        <table class="woocommerce-table woocommerce-table--order-details shop_table order_details">
-                            <tbody>
-                                <tr>
-                                    <th scope="row"><?php _e('Amount Paid:', 't4e-pg-trustap'); ?></th>
-                                    <td><?php echo $amount_paid; ?></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Buyer Fees:', 't4e-pg-trustap'); ?></th>
-                                    <td><?php echo $buyer_fees; ?></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Seller Fees:', 't4e-pg-trustap'); ?></th>
-                                    <td><?php echo $seller_fees; ?></td>
-                                </tr>
-                                 <tr>
-                                    <th scope="row"><?php _e('International Payment Fee:', 't4e-pg-trustap'); ?></th>
-                                    <td><?php echo $international_payment_fee; ?></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Expected Payout:', 't4e-pg-trustap'); ?></th>
-                                    <td><?php echo $expected_payout; ?></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Funds Released:', 't4e-pg-trustap'); ?></th>
-                                    <td><?php echo $funds_released; ?></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row"><?php _e('Status:', 't4e-pg-trustap'); ?></th>
-                                    <td><?php echo $status; ?></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <?php
-                    } else {
-                        $logger->error('Order ID: ' . $order->get_id() . ' - Could not retrieve valid transaction details from Trustap. Response: ' . print_r($transaction_details, true), $context);
-                        echo '<p>' . __('Could not retrieve transaction details from Trustap. Please check the WooCommerce logs for more information.', 't4e-pg-trustap') . '</p>';
+                    if ($status === 'Funds Released') {
+                        echo '<p><strong>' . __('Transaction Complete!', 't4e-pg-trustap') . '</strong> ' . __('We have released the funds. Depending on your bank, they should be available in 5-7 working days.', 't4e-pg-trustap') . '</p>';
                     }
                     ?>
-                </div>
+                    <table class="woocommerce-table woocommerce-table--order-details shop_table order_details">
+                        <tbody>
+                            <tr>
+                                <th scope="row"><?php _e('Amount Paid:', 't4e-pg-trustap'); ?></th>
+                                <td><?php echo $amount_paid; ?></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php _e('Buyer Fees:', 't4e-pg-trustap'); ?></th>
+                                <td><?php echo $buyer_fees; ?></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php _e('Seller Fees:', 't4e-pg-trustap'); ?></th>
+                                <td><?php echo $seller_fees; ?></td>
+                            </tr>
+                             <tr>
+                                <th scope="row"><?php _e('International Payment Fee:', 't4e-pg-trustap'); ?></th>
+                                <td><?php echo $international_payment_fee; ?></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php _e('Expected Payout:', 't4e-pg-trustap'); ?></th>
+                                <td><?php echo $expected_payout; ?></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php _e('Funds Released:', 't4e-pg-trustap'); ?></th>
+                                <td><?php echo $funds_released; ?></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php _e('Status:', 't4e-pg-trustap'); ?></th>
+                                <td><?php echo $status; ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <?php
+                } else {
+                    echo '<p>' . __('Could not retrieve transaction details from Trustap.', 't4e-pg-trustap') . '</p>';
+                }
+                ?>
             </div>
-            <?php
-        }
+        </div>
+        <?php
     }
 }
