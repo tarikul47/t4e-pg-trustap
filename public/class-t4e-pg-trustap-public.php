@@ -349,14 +349,34 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
                 <?php
                 if ($transaction_details && isset($transaction_details['status'])) {
 
-                    // Assuming field names based on user request. These may need to be adjusted based on the actual API response.
-                    $amount_paid = isset($transaction_details['purchase_price']) ? wc_price($transaction_details['purchase_price'] / 100) : 'N/A';
-                    $buyer_fees = isset($transaction_details['buyer_fee']) ? wc_price($transaction_details['buyer_fee'] / 100) : 'N/A';
-                    $seller_fees = isset($transaction_details['seller_fee']) ? wc_price($transaction_details['seller_fee'] / 100) : 'N/A';
-                    $expected_payout = isset($transaction_details['payout_amount']) ? wc_price($transaction_details['payout_amount'] / 100) : 'N/A';
-                    $status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
-                    $funds_released = isset($transaction_details['release_amount']) ? wc_price($transaction_details['release_amount'] / 100) : 'N/A';
-                    $international_payment_fee = isset($transaction_details['international_payment_fee']) ? wc_price($transaction_details['international_payment_fee'] / 100) : 'N/A'; // This is a guess
+					$deposit_pricing = isset($transaction_details['deposit_pricing']) ? $transaction_details['deposit_pricing'] : [];
+					
+					$amount_paid = 'N/A';
+					if (isset($transaction_details['purchase_price'])) {
+						$amount_paid = wc_price($transaction_details['purchase_price'] / 100);
+					} elseif (isset($deposit_pricing['price'])) {
+						$amount_paid = wc_price($deposit_pricing['price'] / 100);
+					}
+					
+					$buyer_fees = isset($transaction_details['buyer_fee']) ? wc_price($transaction_details['buyer_fee'] / 100) : 'N/A';
+					
+					$seller_fees = 'N/A';
+					if (isset($transaction_details['seller_fee'])) {
+						$seller_fees = wc_price($transaction_details['seller_fee'] / 100);
+					} elseif (isset($deposit_pricing['charge_seller'])) {
+						$seller_fees = wc_price($deposit_pricing['charge_seller'] / 100);
+					}
+					
+					$international_payment_fee = 'N/A';
+					if (isset($transaction_details['international_payment_fee'])) {
+						$international_payment_fee = wc_price($transaction_details['international_payment_fee'] / 100);
+					} elseif (isset($deposit_pricing['charge_international_payment'])) {
+						$international_payment_fee = wc_price($deposit_pricing['charge_international_payment'] / 100);
+					}
+					
+					$expected_payout = isset($transaction_details['payout_amount']) ? wc_price($transaction_details['payout_amount'] / 100) : 'N/A';
+					$status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
+					$funds_released = isset($transaction_details['release_amount']) ? wc_price($transaction_details['release_amount'] / 100) : 'N/A';
 
                     if ($status === 'Funds Released') {
                         echo '<p><strong>' . __('Transaction Complete!', 't4e-pg-trustap') . '</strong> ' . __('We have released the funds. Depending on your bank, they should be available in 5-7 working days.', 't4e-pg-trustap') . '</p>';
