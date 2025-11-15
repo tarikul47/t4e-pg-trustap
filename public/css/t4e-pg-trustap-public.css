@@ -1,0 +1,22 @@
+/**
+ * All of the CSS for your public-facing functionality should be
+ * included in this file.
+ */
+
+#trustap_connection {
+    display: inline-block;
+}
+
+#trustap_connection button {
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+#trustap_connection h5 {
+    margin-bottom: 7px;
+}
+
+#trustap_connection p {
+    font-size: 12px;
+    margin-bottom: 10px;
+}
