@@ -183,6 +183,8 @@ class Service_Override
 
 
             $transaction = $this->get_transaction('p2p', $transaction_id);
+            // transaction save meta 
+            $this->save_trustap_transaction_details_on_payment_complete($order->get_id());
 
             if (!isset($transaction['deposit_paid']) || !$transaction['deposit_paid']) {
 
@@ -528,6 +530,51 @@ class Service_Override
         }
 
         return wc_get_order($order_id);
+
+    }
+
+
+    public function save_trustap_transaction_details_on_payment_complete($order_id)
+    {
+        $logger = wc_get_logger();
+        $context = ['source' => 't4e-pg-trustap-save-details'];
+        $logger->info('Attempting to save Trustap transaction details for Order ID: ' . $order_id, $context);
+
+        $order = wc_get_order($order_id);
+        if (!$order) {
+            //	$logger->error('Order not found for ID: ' . $order_id, $context);
+            return;
+        }
+
+        $payment_method = $order->get_payment_method();
+        //	$logger->info('Order ' . $order_id . ' payment method: ' . $payment_method, $context);
+
+        if ($payment_method !== 'trustap') {
+            //	$logger->info('Order ' . $order_id . ' is not a Trustap payment. Skipping.', $context);
+            return;
+        }
+
+        $transaction_id = $order->get_meta('trustap_transaction_ID');
+        if (empty($transaction_id)) {
+            //	$logger->error('Order ' . $order_id . ' has no trustap_transaction_ID.', $context);
+            return;
+        }
+        //	$logger->info('Order ' . $order_id . ' - trustap_transaction_ID: ' . $transaction_id, $context);
+
+        $model = $order->get_meta('model');
+        $type = (strpos($model, 'p2p') !== false) ? 'p2p' : '';
+        //$logger->info('Order ' . $order_id . ' - Model: ' . $model . ' | Type: ' . $type, $context);
+
+        $transaction_details = $this->get_transaction($type, $transaction_id);
+        //	$logger->info('Order ' . $order_id . ' - API Response from get_transaction: ' . print_r($transaction_details, true), $context);
+
+        if ($transaction_details && !is_wp_error($transaction_details)) {
+            $order->update_meta_data('_trustap_transaction_details', $transaction_details);
+            $order->save();
+            //		$logger->info('Order ' . $order_id . ' - Trustap transaction details successfully saved to order meta.', $context);
+        } else {
+            //		$logger->error('Order ' . $order_id . ' - Failed to get valid Trustap transaction details from API.', $context);
+        }
 
     }
 }
