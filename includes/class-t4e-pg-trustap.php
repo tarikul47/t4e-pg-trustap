@@ -134,7 +134,7 @@ class T4e_Pg_Trustap
 
 
 		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/class-trustap-service-override.php';
-		
+
 		// Trustap gateway override for process payment 
 		require_once plugin_dir_path(dirname(__FILE__)) . 'includes/gateways/class-override-gateway-trustap.php';
 
@@ -225,12 +225,8 @@ class T4e_Pg_Trustap
 		$this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
 		$this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
 
-<<<<<<< HEAD
-=======
 		$this->loader->add_action('wcfm_order_totals_after_total', $plugin_public, 'display_trustap_transaction_details', 20, 1);
 		$this->loader->add_action('woocommerce_payment_complete', $plugin_public, 'save_trustap_transaction_details_on_payment_complete', 10, 1);
-
->>>>>>> 2f0c089e32c259bc60bf6e7bec0a512f751a442c
 	}
 
 	/**
