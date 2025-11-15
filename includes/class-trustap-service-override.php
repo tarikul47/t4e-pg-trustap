@@ -352,7 +352,11 @@ class Service_Override
 
     }
 
+<<<<<<< HEAD
     private function get_transaction($type, $transaction_id)
+=======
+    public function get_transaction($type, $transaction_id)
+>>>>>>> 2f0c089e32c259bc60bf6e7bec0a512f751a442c
     {
         $prefix = ($type === 'p2p') ? 'p2p' : '';
         try {
