@@ -59,6 +59,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 		$this->oauth_handler = $oauth_handler;
 
 		$gateways = WC()->payment_gateways->payment_gateways();
+		
 		if (isset($gateways['trustap'])) {
 			$this->trustap_service = new Service_Override($gateways['trustap'], $this->controller);
 		}
