@@ -181,6 +181,7 @@ class Service_Override
             $transaction = $this->get_transaction('p2p', $transaction_id);
             // transaction save meta 
             $this->save_trustap_transaction_details_on_payment_complete($order->get_id());
+            $this->synchronize_commission($order->get_id(), $transaction);
 
             if (!isset($transaction['deposit_paid']) || !$transaction['deposit_paid']) {
 
@@ -570,6 +571,61 @@ class Service_Override
             //		$logger->error('Order ' . $order_id . ' - Failed to get valid Trustap transaction details from API.', $context);
         }
 
+    }
+
+    private function synchronize_commission($order_id, $transaction_details)
+    {
+        global $wpdb, $WCFMmp;
+
+        amaturlog('Synchronizing commission for order ID: ' . $order_id, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+
+        if (!$WCFMmp) {
+            amaturlog('WCFMmp not available.', 'error', source: basename(__FILE__) . ':' . __LINE__);
+            return;
+        }
+
+        $commission_ids = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->prefix}wcfm_marketplace_orders WHERE order_id = %d", $order_id));
+
+        if (empty($commission_ids)) {
+            amaturlog('No commission IDs found for order ID: ' . $order_id, 'info', source: basename(__FILE__) . ':' . __LINE__);
+            return;
+        }
+        amaturlog('Commission IDs found: ' . print_r($commission_ids, true), 'debug', source: basename(__FILE__) . ':' . __LINE__);
+
+        if ($transaction_details && isset($transaction_details['payout_amount'])) {
+            $payout_amount = $transaction_details['payout_amount'] / 100;
+            amaturlog('Payout amount: ' . $payout_amount, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+
+            foreach ($commission_ids as $commission_id) {
+                $result = $wpdb->update(
+                    "{$wpdb->prefix}wcfm_marketplace_orders",
+                    array('total_commission' => $payout_amount),
+                    array('ID' => $commission_id),
+                    array('%f'),
+                    array('%d')
+                );
+
+                amaturlog('Commission update result for commission ID ' . $commission_id . ': ' . $result, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+
+                if (property_exists($WCFMmp, 'wcfmmp_commission')) {
+                    if (isset($transaction_details['buyer_fee'])) {
+                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_buyer_fee', $transaction_details['buyer_fee'] / 100);
+                    }
+                    if (isset($transaction_details['seller_fee'])) {
+                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_seller_fee', $transaction_details['seller_fee'] / 100);
+                    }
+                    if (isset($transaction_details['international_payment_fee'])) {
+                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_international_payment_fee', $transaction_details['international_payment_fee'] / 100);
+                    }
+                    if (isset($transaction_details['purchase_price'])) {
+                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_amount_paid', $transaction_details['purchase_price'] / 100);
+                    }
+                }
+            }
+        } else {
+            amaturlog('No payout amount found in transaction details for order ID: ' . $order_id, 'warning', source: basename(__FILE__) . ':' . __LINE__);
+            amaturlog($transaction_details, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+        }
     }
 }
 
