@@ -281,24 +281,6 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
             return;
         }
 
-        $transaction_details = $order->get_meta('_trustap_transaction_details');
-        $commission_ids = $this->get_commission_ids_by_order_id($order_id);
-
-        if (empty($transaction_details) && !empty($commission_ids)) {
-            $commission_id = $commission_ids[0];
-            global $WCFMmp;
-            if ($WCFMmp && property_exists($WCFMmp, 'wcfmmp_commission')) {
-                $transaction_details = array(
-                    'purchase_price' => $WCFMmp->wcfmmp_commission->wcfmmp_get_commission_meta($commission_id, '_trustap_amount_paid') * 100,
-                    'buyer_fee' => $WCFMmp->wcfmmp_commission->wcfmmp_get_commission_meta($commission_id, '_trustap_buyer_fee') * 100,
-                    'seller_fee' => $WCFMmp->wcfmmp_commission->wcfmmp_get_commission_meta($commission_id, '_trustap_seller_fee') * 100,
-                    'international_payment_fee' => $WCFMmp->wcfmmp_commission->wcfmmp_get_commission_meta($commission_id, '_trustap_international_payment_fee') * 100,
-                    'payout_amount' => $WCFMmp->wcfmmp_commission->wcfmmp_get_commission_meta($commission_id, 'total_commission') * 100,
-                    'status' => 'synchronized', // A pseudo-status
-                );
-            }
-        }
-
         if (empty($transaction_details)) {
             return;
         }
@@ -315,29 +297,21 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
                     $deposit_pricing = isset($transaction_details['deposit_pricing']) ? $transaction_details['deposit_pricing'] : [];
 
                     $amount_paid = 'N/A';
-                    if (isset($transaction_details['purchase_price'])) {
-                        $amount_paid = wc_price($transaction_details['purchase_price'] / 100);
-                    } elseif (isset($deposit_pricing['price'])) {
+                    if (isset($deposit_pricing['price'])) {
                         $amount_paid = wc_price($deposit_pricing['price'] / 100);
                     }
 
-                    $buyer_fees = isset($transaction_details['buyer_fee']) ? wc_price($transaction_details['buyer_fee'] / 100) : 'N/A';
+                    $buyer_fees = isset($deposit_pricing['charge']) ? wc_price($deposit_pricing['charge'] / 100) : 'N/A';
 
-                    $seller_fees = 'N/A';
-                    if (isset($transaction_details['seller_fee'])) {
-                        $seller_fees = wc_price($transaction_details['seller_fee'] / 100);
-                    } elseif (isset($deposit_pricing['charge_seller'])) {
-                        $seller_fees = wc_price($deposit_pricing['charge_seller'] / 100);
+                    $seller_fees = isset($deposit_pricing['charge_seller']) ? wc_price($deposit_pricing['charge_seller'] / 100) : 'N/A';
+
+                    $international_payment_fee = isset($deposit_pricing['charge_international_payment']) ? wc_price($deposit_pricing['charge_international_payment'] / 100) : 'N/A';
+
+                    $expected_payout = 'N/A';
+                    if (isset($deposit_pricing['price']) && isset($deposit_pricing['charge_seller'])) {
+                        $expected_payout = wc_price(($deposit_pricing['price'] - $deposit_pricing['charge_seller']) / 100);
                     }
-
-                    $international_payment_fee = 'N/A';
-                    if (isset($transaction_details['international_payment_fee'])) {
-                        $international_payment_fee = wc_price($transaction_details['international_payment_fee'] / 100);
-                    } elseif (isset($deposit_pricing['charge_international_payment'])) {
-                        $international_payment_fee = wc_price($deposit_pricing['charge_international_payment'] / 100);
-                    }
-
-                    $expected_payout = isset($transaction_details['payout_amount']) ? wc_price($transaction_details['payout_amount'] / 100) : 'N/A';
+                    
                     $status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
                     $funds_released = isset($transaction_details['release_amount']) ? wc_price($transaction_details['release_amount'] / 100) : 'N/A';
 
@@ -387,11 +361,5 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         <?php
     }
 
-    private function get_commission_ids_by_order_id($order_id)
-    {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'wcfm_marketplace_orders';
-        $commission_ids = $wpdb->get_col($wpdb->prepare("SELECT ID FROM $table_name WHERE order_id = %d", $order_id));
-        return $commission_ids;
-    }
 }
+
