@@ -167,7 +167,7 @@ class Service_Override
             }
 
             $transaction = $this->get_transaction('p2p', $transaction_id);
-            
+
             // transaction save meta 
             $this->save_trustap_transaction_details_on_payment_complete($order->get_id());
 
@@ -584,17 +584,17 @@ class Service_Override
                 amaturlog('Commission update result for commission ID ' . $commission_id . ': ' . $result, 'debug', source: basename(__FILE__) . ':' . __LINE__);
 
                 if (property_exists($WCFMmp, 'wcfmmp_commission')) {
-                    if (isset($transaction_details['buyer_fee'])) {
-                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_buyer_fee', $transaction_details['buyer_fee'] / 100);
+                    if (isset($transaction_details['deposit_pricing']['charge'])) {
+                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_buyer_fee', $transaction_details['deposit_pricing']['charge'] / 100);
                     }
-                    if (isset($transaction_details['seller_fee'])) {
-                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_seller_fee', $transaction_details['seller_fee'] / 100);
+                    if (isset($transaction_details['deposit_pricing']['charge_seller'])) {
+                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_seller_fee', $transaction_details['deposit_pricing']['charge_seller'] / 100);
                     }
-                    if (isset($transaction_details['international_payment_fee'])) {
-                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_international_payment_fee', $transaction_details['international_payment_fee'] / 100);
+                    if (isset($transaction_details['deposit_pricing']['charge_international_payment'])) {
+                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_international_payment_fee', $transaction_details['deposit_pricing']['charge_international_payment'] / 100);
                     }
-                    if (isset($transaction_details['purchase_price'])) {
-                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_amount_paid', $transaction_details['purchase_price'] / 100);
+                    if (isset($transaction_details['deposit_pricing']['price'])) {
+                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_amount_paid', $transaction_details['deposit_pricing']['price'] / 100);
                     }
                 }
             }
