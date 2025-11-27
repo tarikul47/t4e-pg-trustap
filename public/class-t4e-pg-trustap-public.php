@@ -387,5 +387,77 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         <?php
     }
 
-}
+    private function get_commission_ids_by_order_id($order_id)
+    {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'wcfm_marketplace_orders';
+        $commission_ids = $wpdb->get_col($wpdb->prepare("SELECT ID FROM $table_name WHERE order_id = %d", $order_id));
+        return $commission_ids;
+    }
 
+    // public function synchronize_trustap_commission($commission_id, $order_id, $order, $vendor_id, $product_id, $order_item_id, $grosse_total, $total_commission, $is_auto_withdrawal, $commission_rule)
+    // {
+    //     amaturlog('Synchronizing Trustap commission for commission ID: ' . $commission_id, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+
+    //     if (!$order || $order->get_payment_method() !== 'trustap') {
+    //         return;
+    //     }
+
+    //     $transaction_id = $order->get_meta('trustap_transaction_ID');
+    //     amaturlog($transaction_id, 'transaction_id', source: basename(__FILE__) . ':' . __LINE__);
+
+    //     if (empty($transaction_id)) {
+    //         amaturlog('No Trustap transaction ID found for order ID: ' . $order_id, 'error', source: basename(__FILE__) . ':' . __LINE__);
+    //         return;
+    //     }
+
+    //     $trustap_gateway = WC()->payment_gateways()->payment_gateways()['trustap'];
+
+    //     // $controller = new AbstractController('trustap/v1');
+
+    //     $service_override = new Service_Override($trustap_gateway, $this->controller);
+
+    //     $model = $order->get_meta('model');
+
+    //     $type = (strpos($model, 'p2p') !== false) ? 'p2p' : '';
+
+    //     $transaction_details = $service_override->get_transaction($type, $transaction_id);
+
+    //     amaturlog('Trustap transaction details for order ID ' . $order_id . ':', 'debug', source: basename(__FILE__) . ':' . __LINE__);
+    //     amaturlog($transaction_details, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+
+
+
+    //     if ($transaction_details && isset($transaction_details['payout_amount'])) {
+    //         global $wpdb, $WCFMmp;
+
+    //         $payout_amount = $transaction_details['payout_amount'] / 100; // Convert from cents
+
+    //         $wpdb->update(
+    //             "{$wpdb->prefix}wcfm_marketplace_orders",
+    //             array('total_commission' => $payout_amount),
+    //             array('ID' => $commission_id),
+    //             array('%f'),
+    //             array('%d')
+    //         );
+
+    //         amaturlog('Updated commission for commission ID ' . $commission_id . ' to: ' . $payout_amount, 'info', source: basename(__FILE__) . ':' . __LINE__);
+
+    //         // Store other fees
+    //         if ($WCFMmp && property_exists($WCFMmp, 'wcfmmp_commission')) {
+    //             if (isset($transaction_details['buyer_fee'])) {
+    //                 $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_buyer_fee', $transaction_details['buyer_fee'] / 100);
+    //             }
+    //             if (isset($transaction_details['seller_fee'])) {
+    //                 $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_seller_fee', $transaction_details['seller_fee'] / 100);
+    //             }
+    //             if (isset($transaction_details['international_payment_fee'])) {
+    //                 $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_international_payment_fee', $transaction_details['international_payment_fee'] / 100);
+    //             }
+    //             if (isset($transaction_details['purchase_price'])) {
+    //                 $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_amount_paid', $transaction_details['purchase_price'] / 100);
+    //             }
+    //         }
+    //     }
+    // }
+}
