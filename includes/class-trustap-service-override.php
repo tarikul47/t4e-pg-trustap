@@ -53,8 +53,6 @@ class Service_Override
         add_action('woocommerce_api_trustap_webhook_raju', array($this, 'child_trustap_custom_webhook'));
 
         // add_action('add_meta_boxes', [$this, 't4e_add_confirm_handover_meta_box'], 110000, 2);
-
-
     }
 
     public function t4e_add_confirm_handover_meta_box($post_type, $post)
@@ -159,9 +157,7 @@ class Service_Override
                 $logger->error('Missing tx_id in GET request', ['source' => 'trustap-child']);
 
                 exit();
-
             }
-
 
 
             $transaction_id = Validator::sanitize_string($_GET['tx_id']);
@@ -351,7 +347,6 @@ class Service_Override
         }
 
         return true;
-
     }
 
     public function get_transaction($type, $transaction_id)
@@ -532,7 +527,6 @@ class Service_Override
         return wc_get_order($order_id);
 
     }
-
 
     public function save_trustap_transaction_details_on_payment_complete($order_id)
     {
