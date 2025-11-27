@@ -281,6 +281,9 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
             return;
         }
 
+        $transaction_details = $order->get_meta('_trustap_transaction_details');
+
+
         if (empty($transaction_details)) {
             return;
         }
@@ -311,7 +314,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
                     if (isset($deposit_pricing['price']) && isset($deposit_pricing['charge_seller'])) {
                         $expected_payout = wc_price(($deposit_pricing['price'] - $deposit_pricing['charge_seller']) / 100);
                     }
-                    
+
                     $status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
                     $funds_released = isset($transaction_details['release_amount']) ? wc_price($transaction_details['release_amount'] / 100) : 'N/A';
 
@@ -362,4 +365,5 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
     }
 
 }
+
 
