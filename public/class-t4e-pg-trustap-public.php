@@ -300,19 +300,22 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
                     $deposit_pricing = isset($transaction_details['deposit_pricing']) ? $transaction_details['deposit_pricing'] : [];
 
                     $amount_paid = 'N/A';
-                    if (isset($deposit_pricing['price'])) {
-                        $amount_paid = wc_price($deposit_pricing['price'] / 100);
+                    if (isset($deposit_pricing['price']) && isset($deposit_pricing['charge'])) {
+                        $amount_paid = wc_price(($deposit_pricing['price'] + $deposit_pricing['charge']) / 100);
                     }
 
                     $buyer_fees = isset($deposit_pricing['charge']) ? wc_price($deposit_pricing['charge'] / 100) : 'N/A';
 
-                    $seller_fees = isset($deposit_pricing['charge_seller']) ? wc_price($deposit_pricing['charge_seller'] / 100) : 'N/A';
+                    $seller_fees = 'N/A';
+                    if (isset($deposit_pricing['charge_seller']) && isset($deposit_pricing['charge_international_payment'])) {
+                        $seller_fees = wc_price(($deposit_pricing['charge_seller'] + $deposit_pricing['charge_international_payment']) / 100);
+                    }
 
                     $international_payment_fee = isset($deposit_pricing['charge_international_payment']) ? wc_price($deposit_pricing['charge_international_payment'] / 100) : 'N/A';
 
                     $expected_payout = 'N/A';
-                    if (isset($deposit_pricing['price']) && isset($deposit_pricing['charge_seller'])) {
-                        $expected_payout = wc_price(($deposit_pricing['price'] - $deposit_pricing['charge_seller']) / 100);
+                    if (isset($deposit_pricing['price']) && isset($deposit_pricing['charge_seller']) && isset($deposit_pricing['charge_international_payment'])) {
+                        $expected_payout = wc_price(($deposit_pricing['price'] - $deposit_pricing['charge_seller'] - $deposit_pricing['charge_international_payment']) / 100);
                     }
 
                     $status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
