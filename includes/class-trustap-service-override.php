@@ -151,36 +151,26 @@ class Service_Override
         try {
 
             if (!isset($_GET['tx_id'])) {
-
                 $logger = wc_get_logger();
-
                 $logger->error('Missing tx_id in GET request', ['source' => 'trustap-child']);
-
                 exit();
             }
-
 
             $transaction_id = Validator::sanitize_string($_GET['tx_id']);
 
             $order = $this->get_order_by_transaction_id($transaction_id);
 
-
-
             if (!$order) {
-
                 $logger = wc_get_logger();
-
                 $logger->error("Order not found for transaction ID: {$transaction_id}", ['source' => 'trustap-child']);
-
                 exit();
-
             }
 
-
-
             $transaction = $this->get_transaction('p2p', $transaction_id);
+
             // transaction save meta 
             $this->save_trustap_transaction_details_on_payment_complete($order->get_id());
+
             $this->synchronize_commission($order->get_id(), $transaction);
 
             if (!isset($transaction['deposit_paid']) || !$transaction['deposit_paid']) {
@@ -194,29 +184,15 @@ class Service_Override
                 exit();
 
             }
-
-
-
             $order->payment_complete();
-
             $order->add_order_note(__('Paid and confirmed (P2P via GET)', 'trustap-payment-gateway'), true);
 
-
-
             if (function_exists('WC') && is_a(WC()->cart, 'WC_Cart')) {
-
                 WC()->cart->empty_cart();
-
             }
 
-
-
             $this->accept_deposit($transaction_id, $order);
-
             $this->handle_handover_confirmation($transaction_id, $order);
-
-
-
             return wp_redirect($this->wc_payment_gateway->get_return_url($order));
 
         } catch (Exception $e) {
@@ -592,40 +568,40 @@ class Service_Override
         }
         amaturlog('Commission IDs found: ' . print_r($commission_ids, true), 'debug', source: basename(__FILE__) . ':' . __LINE__);
 
-        if ($transaction_details && isset($transaction_details['payout_amount'])) {
-            $payout_amount = $transaction_details['payout_amount'] / 100;
-            amaturlog('Payout amount: ' . $payout_amount, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+        // if ($transaction_details && isset($transaction_details['payout_amount'])) {
+        //     $payout_amount = $transaction_details['payout_amount'] / 100;
+        //     amaturlog('Payout amount: ' . $payout_amount, 'debug', source: basename(__FILE__) . ':' . __LINE__);
 
-            foreach ($commission_ids as $commission_id) {
-                $result = $wpdb->update(
-                    "{$wpdb->prefix}wcfm_marketplace_orders",
-                    array('total_commission' => $payout_amount),
-                    array('ID' => $commission_id),
-                    array('%f'),
-                    array('%d')
-                );
+        //     foreach ($commission_ids as $commission_id) {
+        //         $result = $wpdb->update(
+        //             "{$wpdb->prefix}wcfm_marketplace_orders",
+        //             array('total_commission' => $payout_amount),
+        //             array('ID' => $commission_id),
+        //             array('%f'),
+        //             array('%d')
+        //         );
 
-                amaturlog('Commission update result for commission ID ' . $commission_id . ': ' . $result, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+        //         amaturlog('Commission update result for commission ID ' . $commission_id . ': ' . $result, 'debug', source: basename(__FILE__) . ':' . __LINE__);
 
-                if (property_exists($WCFMmp, 'wcfmmp_commission')) {
-                    if (isset($transaction_details['buyer_fee'])) {
-                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_buyer_fee', $transaction_details['buyer_fee'] / 100);
-                    }
-                    if (isset($transaction_details['seller_fee'])) {
-                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_seller_fee', $transaction_details['seller_fee'] / 100);
-                    }
-                    if (isset($transaction_details['international_payment_fee'])) {
-                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_international_payment_fee', $transaction_details['international_payment_fee'] / 100);
-                    }
-                    if (isset($transaction_details['purchase_price'])) {
-                        $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_amount_paid', $transaction_details['purchase_price'] / 100);
-                    }
-                }
-            }
-        } else {
-            amaturlog('No payout amount found in transaction details for order ID: ' . $order_id, 'warning', source: basename(__FILE__) . ':' . __LINE__);
-            amaturlog($transaction_details, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-        }
+        //         if (property_exists($WCFMmp, 'wcfmmp_commission')) {
+        //             if (isset($transaction_details['buyer_fee'])) {
+        //                 $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_buyer_fee', $transaction_details['buyer_fee'] / 100);
+        //             }
+        //             if (isset($transaction_details['seller_fee'])) {
+        //                 $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_seller_fee', $transaction_details['seller_fee'] / 100);
+        //             }
+        //             if (isset($transaction_details['international_payment_fee'])) {
+        //                 $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_international_payment_fee', $transaction_details['international_payment_fee'] / 100);
+        //             }
+        //             if (isset($transaction_details['purchase_price'])) {
+        //                 $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_amount_paid', $transaction_details['purchase_price'] / 100);
+        //             }
+        //         }
+        //     }
+        // } else {
+        //     amaturlog('No payout amount found in transaction details for order ID: ' . $order_id, 'warning', source: basename(__FILE__) . ':' . __LINE__);
+        //     amaturlog($transaction_details, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+        // }
     }
 }
 
