@@ -553,21 +553,10 @@ class Service_Override
     {
         global $wpdb, $WCFMmp;
 
-        amaturlog('Attempting to synchronize commission for order ID: ' . $order_id, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+        amaturlog('Synchronizing commission for order ID: ' . $order_id, 'debug', source: basename(__FILE__) . ':' . __LINE__);
 
         if (!$WCFMmp) {
             amaturlog('WCFMmp not available.', 'error', source: basename(__FILE__) . ':' . __LINE__);
-            return;
-        }
-
-        $order = wc_get_order($order_id);
-        if (!$order) {
-            amaturlog('Could not retrieve order object for order ID: ' . $order_id, 'error', source: basename(__FILE__) . ':' . __LINE__);
-            return;
-        }
-
-        if ($order->get_meta('_trustap_commission_synchronized')) {
-            amaturlog('Commission already synchronized for order ID: ' . $order_id . '. Skipping.', 'info', source: basename(__FILE__) . ':' . __LINE__);
             return;
         }
 
@@ -579,55 +568,21 @@ class Service_Override
         }
         amaturlog('Commission IDs found: ' . print_r($commission_ids, true), 'debug', source: basename(__FILE__) . ':' . __LINE__);
 
-        if (count($commission_ids) > 1) {
-            amaturlog('Multi-vendor order detected (Order ID: ' . $order_id . '). The Trustap fee will be applied to each vendor commission record without being split. This may lead to incorrect commission values for individual vendors.', 'warning', source: basename(__FILE__) . ':' . __LINE__);
-        }
+        if ($transaction_details && isset($transaction_details['deposit_pricing']['price']) && isset($transaction_details['deposit_pricing']['charge_seller'])) {
+            $payout_amount = ($transaction_details['deposit_pricing']['price'] - $transaction_details['deposit_pricing']['charge_seller']) / 100;
+            amaturlog('Calculated payout amount: ' . $payout_amount, 'debug', source: basename(__FILE__) . ':' . __LINE__);
 
-        if (
-            $transaction_details &&
-            isset($transaction_details['deposit_pricing']['price']) &&
-            isset($transaction_details['deposit_pricing']['charge_seller']) &&
-            isset($transaction_details['deposit_pricing']['charge_international_payment'])
-        ) {
-            $price = $transaction_details['deposit_pricing']['price'];
-            $charge_seller = $transaction_details['deposit_pricing']['charge_seller'];
-            $charge_international = $transaction_details['deposit_pricing']['charge_international_payment'];
-
-            amaturlog('transaction_details: ' . print_r($transaction_details, true), 'debug', source: basename(__FILE__) . ':' . __LINE__);
-            amaturlog('price: ' . $price, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-            amaturlog('charge_seller: ' . $charge_seller, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-            amaturlog('charge_international: ' . $charge_international, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-
-
-            $product_price = $price / 100;
-            //$trustap_fees = ($charge_seller + $charge_international) / 100;
-            $trustap_fees = $charge_seller / 100;
-            $vendor_gross_commission = $product_price - $trustap_fees;
-            $vendor_net_commission = $vendor_gross_commission - $charge_international;
-
-            amaturlog('product_price: ' . $price, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-            amaturlog('trustap_fees: ' . $charge_seller, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-            amaturlog('vendor_gross_commission: ' . $vendor_gross_commission, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-            amaturlog('vendor_net_commission: ' . $vendor_net_commission, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-
-
-            $update_successful = false;
             foreach ($commission_ids as $commission_id) {
                 $result = $wpdb->update(
                     "{$wpdb->prefix}wcfm_marketplace_orders",
-                    array(
-                        'commission_amount' => $vendor_gross_commission,
-                        'total_commission' => $vendor_net_commission
-                    ),
+                    array('total_commission' => $payout_amount),
+                    // array('commission_amount' => $payout_amount),
                     array('ID' => $commission_id),
-                    array('%f', '%f'),
+                    array('%f'),
                     array('%d')
                 );
 
-                amaturlog('Commission update result for commission ID ' . $commission_id . ': ' . ($result !== false ? 'Success' : 'Failure'), 'debug', source: basename(__FILE__) . ':' . __LINE__);
-                if ($result !== false) {
-                    $update_successful = true;
-                }
+                amaturlog('Commission update result for commission ID ' . $commission_id . ': ' . $result, 'debug', source: basename(__FILE__) . ':' . __LINE__);
 
                 if (property_exists($WCFMmp, 'wcfmmp_commission')) {
                     if (isset($transaction_details['deposit_pricing']['charge'])) {
@@ -644,15 +599,8 @@ class Service_Override
                     }
                 }
             }
-
-            if ($update_successful) {
-                $order->update_meta_data('_trustap_commission_synchronized', true);
-                $order->save();
-                amaturlog('Commission synchronization complete and flag set for order ID: ' . $order_id, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-            }
-
         } else {
-            amaturlog('Trustap fee data not found in transaction details for order ID: ' . $order_id, 'warning', source: basename(__FILE__) . ':' . __LINE__);
+            amaturlog('No payout amount found in transaction details for order ID: ' . $order_id, 'warning', source: basename(__FILE__) . ':' . __LINE__);
             amaturlog($transaction_details, 'debug', source: basename(__FILE__) . ':' . __LINE__);
         }
     }
