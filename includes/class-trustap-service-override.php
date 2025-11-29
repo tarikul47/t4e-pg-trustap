@@ -593,15 +593,22 @@ class Service_Override
             $charge_seller = $transaction_details['deposit_pricing']['charge_seller'];
             $charge_international = $transaction_details['deposit_pricing']['charge_international_payment'];
 
+            amaturlog('price: ' . $price, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+            amaturlog('charge_seller: ' . $charge_seller, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+            amaturlog('charge_international: ' . $charge_international, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+
+
             $product_price = $price / 100;
             //$trustap_fees = ($charge_seller + $charge_international) / 100;
             $trustap_fees = $charge_seller / 100;
             $vendor_gross_commission = $product_price - $trustap_fees;
             $vendor_net_commission = $vendor_gross_commission - $charge_international;
 
-            amaturlog('Calculated Vendor Gross Commission: ' . $vendor_gross_commission, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-            amaturlog('Calculated Trustap Fees: ' . $trustap_fees, 'debug', source: basename(__FILE__) . ':' . __LINE__);
-            amaturlog('Calculated Vendor Net Commission: ' . $vendor_net_commission, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+            amaturlog('product_price: ' . $price, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+            amaturlog('trustap_fees: ' . $charge_seller, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+            amaturlog('vendor_gross_commission: ' . $vendor_gross_commission, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+            amaturlog('vendor_net_commission: ' . $vendor_net_commission, 'debug', source: basename(__FILE__) . ':' . __LINE__);
+
 
             $update_successful = false;
             foreach ($commission_ids as $commission_id) {
