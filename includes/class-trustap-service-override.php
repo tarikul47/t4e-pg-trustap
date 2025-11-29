@@ -593,6 +593,7 @@ class Service_Override
             $charge_seller = $transaction_details['deposit_pricing']['charge_seller'];
             $charge_international = $transaction_details['deposit_pricing']['charge_international_payment'];
 
+            amaturlog('transaction_details: ' . $transaction_details, 'debug', source: basename(__FILE__) . ':' . __LINE__);
             amaturlog('price: ' . $price, 'debug', source: basename(__FILE__) . ':' . __LINE__);
             amaturlog('charge_seller: ' . $charge_seller, 'debug', source: basename(__FILE__) . ':' . __LINE__);
             amaturlog('charge_international: ' . $charge_international, 'debug', source: basename(__FILE__) . ':' . __LINE__);
