@@ -277,94 +277,66 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
     public function display_trustap_transaction_details($order_id)
     {
         $order = wc_get_order($order_id);
+
         if (!$order || $order->get_payment_method() !== 'trustap') {
             return;
         }
 
         $transaction_details = $order->get_meta('_trustap_transaction_details');
 
-
-        if (empty($transaction_details)) {
+        if (empty($transaction_details) || !isset($transaction_details['status'])) {
             return;
         }
 
+        $deposit_pricing = isset($transaction_details['deposit_pricing']) ? $transaction_details['deposit_pricing'] : [];
+
+        // Helper function to generate rows consistently
+        $generate_row = function ($label, $value) {
+            if ($value === 'N/A') {
+                return; // Don't show rows with no value
+            }
+            ?>
+            <tr>
+                <th class="label" colspan="2" style="text-align:right;"><?php echo esc_html($label); ?>:</th>
+                <td class="total" style="text-align:center;">
+                    <div class="view">
+                        <?php echo wp_kses_post($value); ?>
+                    </div>
+                </td>
+            </tr>
+            <?php
+        };
+
+        // --- Calculations ---
+        $amount_paid = 'N/A';
+        if (isset($deposit_pricing['price']) && isset($deposit_pricing['charge'])) {
+            $amount_paid = wc_price(($deposit_pricing['price'] + $deposit_pricing['charge']) / 100);
+        }
+
+        $seller_fees = 'N/A';
+        if (isset($deposit_pricing['charge_seller']) && isset($deposit_pricing['charge_international_payment'])) {
+            $seller_fees = wc_price(($deposit_pricing['charge_seller'] + $deposit_pricing['charge_international_payment']) / 100);
+        }
+
+        $expected_payout = 'N/A';
+        if (isset($deposit_pricing['price']) && isset($deposit_pricing['charge_seller']) && isset($deposit_pricing['charge_international_payment'])) {
+            $expected_payout = wc_price(($deposit_pricing['price'] - $deposit_pricing['charge_seller'] - $deposit_pricing['charge_international_payment']) / 100);
+        }
+
+        $status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
+
+        // --- Display Rows ---
         ?>
-        <div class="wcfm-clearfix"></div>
-        <br />
-        <div class="wcfm-container">
-            <div class="wcfm-content">
-                <h2><?php _e('Trustap Transaction Details - Updated', 't4e-pg-trustap'); ?></h2>
-                <?php
-                if ($transaction_details && isset($transaction_details['status'])) {
-
-                    $deposit_pricing = isset($transaction_details['deposit_pricing']) ? $transaction_details['deposit_pricing'] : [];
-
-                    $amount_paid = 'N/A';
-                    if (isset($deposit_pricing['price']) && isset($deposit_pricing['charge'])) {
-                        $amount_paid = wc_price(($deposit_pricing['price'] + $deposit_pricing['charge']) / 100);
-                    }
-
-                    $buyer_fees = isset($deposit_pricing['charge']) ? wc_price($deposit_pricing['charge'] / 100) : 'N/A';
-
-                    $seller_fees = 'N/A';
-                    if (isset($deposit_pricing['charge_seller']) && isset($deposit_pricing['charge_international_payment'])) {
-                        $seller_fees = wc_price(($deposit_pricing['charge_seller'] + $deposit_pricing['charge_international_payment']) / 100);
-                    }
-
-                    $international_payment_fee = isset($deposit_pricing['charge_international_payment']) ? wc_price($deposit_pricing['charge_international_payment'] / 100) : 'N/A';
-
-                    $expected_payout = 'N/A';
-                    if (isset($deposit_pricing['price']) && isset($deposit_pricing['charge_seller']) && isset($deposit_pricing['charge_international_payment'])) {
-                        $expected_payout = wc_price(($deposit_pricing['price'] - $deposit_pricing['charge_seller'] - $deposit_pricing['charge_international_payment']) / 100);
-                    }
-
-                    $status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
-                    $funds_released = isset($transaction_details['release_amount']) ? wc_price($transaction_details['release_amount'] / 100) : 'N/A';
-
-                    if ($status === 'Funds Released') {
-                        echo '<p><strong>' . __('Transaction Complete!', 't4e-pg-trustap') . '</strong> ' . __('We have released the funds. Depending on your bank, they should be available in 5-7 working days.', 't4e-pg-trustap') . '</p>';
-                    }
-                    ?>
-                    <table class="woocommerce-table woocommerce-table--order-details shop_table order_details">
-                        <tbody>
-                            <tr>
-                                <th scope="row"><?php _e('Amount Paid:', 't4e-pg-trustap'); ?></th>
-                                <td><?php echo $amount_paid; ?></td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php _e('Buyer Fees:', 't4e-pg-trustap'); ?></th>
-                                <td><?php echo $buyer_fees; ?></td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php _e('Seller Fees:', 't4e-pg-trustap'); ?></th>
-                                <td><?php echo $seller_fees; ?></td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php _e('International Payment Fee:', 't4e-pg-trustap'); ?></th>
-                                <td><?php echo $international_payment_fee; ?></td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php _e('Expected Payout:', 't4e-pg-trustap'); ?></th>
-                                <td><?php echo $expected_payout; ?></td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php _e('Funds Released:', 't4e-pg-trustap'); ?></th>
-                                <td><?php echo $funds_released; ?></td>
-                            </tr>
-                            <tr>
-                                <th scope="row"><?php _e('Status:', 't4e-pg-trustap'); ?></th>
-                                <td><?php echo $status; ?></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <?php
-                } else {
-                    echo '<p>' . __('Could not retrieve transaction details from Trustap.', 't4e-pg-trustap') . '</p>';
-                }
-                ?>
-            </div>
-        </div>
+        <tr>
+            <th class="label" colspan="3" style="text-align:left; background-color: #f8f8f8; border-top: 1px solid #eee;">
+                <strong><?php _e('Trustap Details', 't4e-pg-trustap'); ?></strong>
+            </th>
+        </tr>
         <?php
+        $generate_row(__('Amount Paid', 't4e-pg-trustap'), $amount_paid);
+        $generate_row(__('Seller Fees', 't4e-pg-trustap'), $seller_fees);
+        $generate_row(__('Expected Payout', 't4e-pg-trustap'), $expected_payout);
+        $generate_row(__('Status', 't4e-pg-trustap'), $status);
     }
 
 }
