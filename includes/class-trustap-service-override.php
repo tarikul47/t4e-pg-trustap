@@ -593,9 +593,11 @@ class Service_Override
             $charge_seller = $transaction_details['deposit_pricing']['charge_seller'];
             $charge_international = $transaction_details['deposit_pricing']['charge_international_payment'];
 
-            $vendor_gross_commission = $price / 100;
-            $trustap_fees = ($charge_seller + $charge_international) / 100;
-            $vendor_net_commission = $vendor_gross_commission - $trustap_fees;
+            $product_price = $price / 100;
+            //$trustap_fees = ($charge_seller + $charge_international) / 100;
+            $trustap_fees = $charge_seller / 100;
+            $vendor_gross_commission = $product_price - $trustap_fees;
+            $vendor_net_commission = $vendor_gross_commission - $charge_international;
 
             amaturlog('Calculated Vendor Gross Commission: ' . $vendor_gross_commission, 'debug', source: basename(__FILE__) . ':' . __LINE__);
             amaturlog('Calculated Trustap Fees: ' . $trustap_fees, 'debug', source: basename(__FILE__) . ':' . __LINE__);
@@ -640,7 +642,7 @@ class Service_Override
                 $order->save();
                 amaturlog('Commission synchronization complete and flag set for order ID: ' . $order_id, 'debug', source: basename(__FILE__) . ':' . __LINE__);
             }
-            
+
         } else {
             amaturlog('Trustap fee data not found in transaction details for order ID: ' . $order_id, 'warning', source: basename(__FILE__) . ':' . __LINE__);
             amaturlog($transaction_details, 'debug', source: basename(__FILE__) . ':' . __LINE__);
