@@ -575,7 +575,7 @@ class Service_Override
             foreach ($commission_ids as $commission_id) {
                 $result = $wpdb->update(
                     "{$wpdb->prefix}wcfm_marketplace_orders",
-                    array('total_commission' => $payout_amount),
+                  //  array('total_commission' => $payout_amount),
                     array('commission_amount' => $payout_amount),
                     array('ID' => $commission_id),
                     array('%f'),
