@@ -575,10 +575,12 @@ class Service_Override
             foreach ($commission_ids as $commission_id) {
                 $result = $wpdb->update(
                     "{$wpdb->prefix}wcfm_marketplace_orders",
-                    array('total_commission' => $payout_amount),
-                   // array('commission_amount' => $payout_amount),
+                    array(
+                        'total_commission' => $payout_amount,
+                        'commission_amount' => $payout_amount
+                    ),
                     array('ID' => $commission_id),
-                    array('%f'),
+                    array('%f', '%f'),
                     array('%d')
                 );
 
@@ -598,6 +600,8 @@ class Service_Override
                         $WCFMmp->wcfmmp_commission->wcfmmp_update_commission_meta($commission_id, '_trustap_amount_paid', $transaction_details['deposit_pricing']['price'] / 100);
                     }
                 }
+                $log_data = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}wcfm_marketplace_orders WHERE ID = %d", $commission_id), ARRAY_A);
+                amaturlog($log_data, 'wcfm_marketplace_orders_updated_data', source: basename(__FILE__) . ':' . __LINE__);
             }
         } else {
             amaturlog('No payout amount found in transaction details for order ID: ' . $order_id, 'warning', source: basename(__FILE__) . ':' . __LINE__);

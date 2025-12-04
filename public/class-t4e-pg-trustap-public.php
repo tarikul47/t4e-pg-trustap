@@ -345,7 +345,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         <?php
         $generate_row(__('Amount Paid by Client', 't4e-pg-trustap'), $amount_paid);
         $generate_row(__('Withdraw Fees for International Payment', 't4e-pg-trustap'), $international_payment_fee);
-        $generate_row(__('Service Fees', 't4e-pg-trustap'), $service_fees);
+      //  $generate_row(__('Service Fees', 't4e-pg-trustap'), $service_fees);
         $generate_row(__('Seller Total Fees', 't4e-pg-trustap'), $seller_fees);
         $generate_row(__('Expected Payout', 't4e-pg-trustap'), $expected_payout);
         $generate_row(__('Status', 't4e-pg-trustap'), $status);
