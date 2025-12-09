@@ -257,6 +257,69 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         include_once(plugin_dir_path(__FILE__) . 'partials/wcfm-confirm-handover.php');
     }
 
+    public function sync_trustap_order_status($order_id)
+    {
+        $order = wc_get_order($order_id);
+
+        if (!$order || $order->get_payment_method() !== 'trustap') {
+            return;
+        }
+
+        $transaction_id = $order->get_meta('trustap_transaction_ID');
+        if (empty($transaction_id)) {
+            return;
+        }
+
+        $model = $order->get_meta('model');
+        $type = (strpos($model, 'p2p') !== false) ? 'p2p' : '';
+        $prefix = ($type === 'p2p') ? 'p2p' : '';
+
+        try {
+            $response = $this->trustap_api->get_request("{$prefix}/transactions/{$transaction_id}");
+        } catch (Exception $error) {
+            // Handle error if needed
+            return;
+        }
+
+        if (is_wp_error($response) || !isset($response['body'])) {
+            return;
+        }
+
+        $transaction_details = json_decode($response['body'], true);
+
+        if (empty($transaction_details) || !isset($transaction_details['status'])) {
+            return;
+        }
+
+        $trustap_status = $transaction_details['status'];
+        $current_status = $order->get_status();
+
+        // Remove "wc-" prefix from woocommerce status if present
+        $current_status = str_replace('wc-', '', $current_status);
+
+
+        // Basic status mapping, can be expanded
+        $status_mapping = array(
+            'created' => 'pending',
+            'in_progress' => 'processing',
+            'completed' => 'completed',
+            'cancelled' => 'cancelled',
+            'complained' => 'on-hold',
+            'deposit_paid' => 'processing',
+            'buyer_handover_confirmed' => 'handoverconfirmed',
+            'seller_handover_confirmed' => 'handoverconfirmed',
+            'deposit_refunded' => 'refunded',
+        );
+        
+        // a list of all available statutes can be found here: https://docs.trustap.com/docs/api-webhooks
+
+        $new_status = isset($status_mapping[$trustap_status]) ? $status_mapping[$trustap_status] : null;
+
+        if ($new_status && $new_status !== $current_status) {
+            $order->update_status($new_status, __('Trustap status automatically updated.', 't4e-pg-trustap'));
+        }
+    }
+
     public function enqueue_styles()
     {
         // Enqueue public-facing styles here.
