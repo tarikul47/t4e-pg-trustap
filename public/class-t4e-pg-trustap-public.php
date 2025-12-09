@@ -398,6 +398,18 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 
         $status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
 
+        $trustap_transaction_ID = $order->get_meta('trustap_transaction_ID');
+        $is_test_mode = ($this->trustap_api->environment === 'test');
+        $base_trustap_url = $is_test_mode ? 'https://app.stage.trustap.com' : 'https://app.trustap.com';
+        $trustap_transaction_url = '';
+
+        if (!empty($trustap_transaction_ID)) {
+            $trustap_transaction_url = "{$base_trustap_url}/transactions/{$trustap_transaction_ID}";
+            $status_display = '<a href="' . esc_url($trustap_transaction_url) . '" target="_blank">' . $status . '</a>';
+        } else {
+            $status_display = $status;
+        }
+
         // --- Display Rows ---
         ?>
         <tr>
@@ -411,6 +423,6 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
       //  $generate_row(__('Service Fees', 't4e-pg-trustap'), $service_fees);
         $generate_row(__('Seller Total Fees', 't4e-pg-trustap'), $seller_fees);
         $generate_row(__('Expected Payout', 't4e-pg-trustap'), $expected_payout);
-        $generate_row(__('Status', 't4e-pg-trustap'), $status);
+        $generate_row(__('Status', 't4e-pg-trustap'), $status_display);
     }
 }
