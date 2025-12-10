@@ -310,7 +310,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
             'seller_handover_confirmed' => 'handoverconfirmed',
             'deposit_refunded' => 'refunded',
         );
-        
+
         // a list of all available statutes can be found here: https://docs.trustap.com/docs/api-webhooks
 
         $new_status = isset($status_mapping[$trustap_status]) ? $status_mapping[$trustap_status] : null;
@@ -396,13 +396,25 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
             $expected_payout = wc_price(($deposit_pricing['price'] - $deposit_pricing['charge_seller'] - $deposit_pricing['charge_international_payment']) / 100);
         }
 
-        $status = isset($transaction_details['status']) ? esc_html(ucfirst(str_replace('_', ' ', $transaction_details['status']))) : 'N/A';
+        // Get raw key from API
+        $raw_status = $transaction_details['status'] ?? 'N/A';
 
-        // 1. Status Value Mapping for Display
-        // Assuming the raw status 'remainder_skipped' becomes 'Remainder skipped' after ucfirst and str_replace
-        if ($status === 'Remainder skipped') {
-            $status = 'Payment deposit';
+        // Status mapping using RAW keys
+        $map = [
+            'remainder_skipped' => 'Payment deposit',
+            'seller_handover_confirmed' => 'Handover confirmed by Seller',
+            'buyer_handover_confirmed' => 'Handover confirmed by Buyer',
+        ];
+
+        // If the key exists in the map, use custom value
+        if (isset($map[$raw_status])) {
+            $status = $map[$raw_status];
+        } else {
+            // Fallback: convert snake_case → words
+            $status = ucfirst(str_replace('_', ' ', $raw_status));
         }
+
+        $status = esc_html($status);
 
         $trustap_transaction_ID = $order->get_meta('trustap_transaction_ID');
         $is_test_mode = ($this->trustap_api->environment === 'test');
@@ -410,7 +422,8 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         $trustap_transaction_url = '';
 
         $status_link_html = '';
-        if (!empty($trustap_transaction_ID)) {
+
+        if (!empty($trustap_transaction_ID) && is_admin()) {
             $trustap_transaction_url = "{$base_trustap_url}/transactions/{$trustap_transaction_ID}";
             // 2. Separate Status and Link with a small button/link style
             $status_link_html = '&nbsp; <a href="' . esc_url($trustap_transaction_url) . '" target="_blank" style="text-decoration: none; padding: 3px 8px; border: 1px solid #ccc; border-radius: 3px; background-color: #f0f0f0; color: #333; font-size: 0.85em;">' . __('View', 't4e-pg-trustap') . '</a>';
@@ -428,7 +441,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         <?php
         $generate_row(__('Amount Paid by Client', 't4e-pg-trustap'), $amount_paid);
         $generate_row(__('Withdraw Fees for International Payment', 't4e-pg-trustap'), $international_payment_fee);
-      //  $generate_row(__('Service Fees', 't4e-pg-trustap'), $service_fees);
+        //  $generate_row(__('Service Fees', 't4e-pg-trustap'), $service_fees);
         $generate_row(__('Seller Total Fees', 't4e-pg-trustap'), $seller_fees);
         $generate_row(__('Expected Payout', 't4e-pg-trustap'), $expected_payout);
         $generate_row(__('Status', 't4e-pg-trustap'), $status_display);
