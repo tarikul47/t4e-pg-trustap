@@ -423,7 +423,9 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 
         $status_link_html = '';
 
-        if (!empty($trustap_transaction_ID) && is_admin()) {
+        //TODO:: We need to show link when admin is product owner 
+
+        if (!empty($trustap_transaction_ID) && wcfm_is_vendor()) {
             $trustap_transaction_url = "{$base_trustap_url}/transactions/{$trustap_transaction_ID}";
             // 2. Separate Status and Link with a small button/link style
             $status_link_html = '&nbsp; <a href="' . esc_url($trustap_transaction_url) . '" target="_blank" style="text-decoration: none; padding: 3px 8px; border: 1px solid #ccc; border-radius: 3px; background-color: #f0f0f0; color: #333; font-size: 0.85em;">' . __('View', 't4e-pg-trustap') . '</a>';
