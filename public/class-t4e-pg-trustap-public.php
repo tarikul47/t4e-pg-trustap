@@ -442,7 +442,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         if (wcfm_is_vendor() && in_array($raw_status, ['seller_handover_confirmed', 'buyer_handover_confirmed'], true)) {
 
             $extra_message = __(
-                'After 24 hours, your payment will be released automatically. You can also view your payout status in your Trustap dashboard. If the payment does not appear, please ensure your Trustap profile is fully updated.',
+                'After 24 hours, your payment will be released automatically. You can also view your payout status in your Trustap dashboard. If the payment does not go in your bank account, please ensure your Trustap profile is fully updated.',
                 't4e-pg-trustap'
             );
 
