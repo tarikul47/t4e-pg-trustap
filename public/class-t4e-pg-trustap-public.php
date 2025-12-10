@@ -424,6 +424,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         $extra_button = '';
 
         // Vendor-only: show Trustap link
+        /*
         if (!empty($trustap_transaction_ID) && wcfm_is_vendor()) {
 
             $trustap_transaction_url = "{$base_trustap_url}/transactions/{$trustap_transaction_ID}";
@@ -435,6 +436,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
             </a>
         </div>';
         }
+        */
 
         // Show extra message for final handover status
         if (wcfm_is_vendor() && in_array($raw_status, ['seller_handover_confirmed', 'buyer_handover_confirmed'], true)) {
@@ -448,7 +450,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
             if (!empty($trustap_transaction_ID)) {
                 $extra_button = '<div style="margin-top:6px;">
                 <a href="' . esc_url($trustap_transaction_url) . '" target="_blank"
-                   style="color: #ffffff;display:inline-block; padding:6px 12px; border-radius:4px; background:#007cba; color:#fff; font-size:0.85em; text-decoration:none;">
+                   style="color: #ffffff !important;display:inline-block; padding:6px 12px; border-radius:4px; background:#007cba; color:#fff; font-size:0.85em; text-decoration:none;">
                    ' . __('Open Trustap Dashboard', 't4e-pg-trustap') . '
                 </a>
             </div>';
@@ -463,7 +465,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         }
 
         if (!empty($extra_message)) {
-            $status_display .= '<div style="font-size:0.85em; color:#555; margin-top:6px;">'
+            $status_display .= '<div style="font-size:0.85em; color:#555; margin-top:6px; text-align:left;">'
                 . esc_html($extra_message)
                 . '</div>';
         }
