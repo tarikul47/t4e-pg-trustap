@@ -437,7 +437,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         }
 
         // Show extra message for final handover status
-        if (in_array($raw_status, ['seller_handover_confirmed', 'buyer_handover_confirmed'], true)) {
+        if (wcfm_is_vendor() && in_array($raw_status, ['seller_handover_confirmed', 'buyer_handover_confirmed'], true)) {
 
             $extra_message = __(
                 'After 24 hours, your payment will be released automatically. You can also view your payout status in your Trustap dashboard. If the payment does not appear, please ensure your Trustap profile is fully updated.',
@@ -445,10 +445,10 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
             );
 
             // Vendor-only dashboard button
-            if (wcfm_is_vendor() && !empty($trustap_transaction_ID)) {
+            if (!empty($trustap_transaction_ID)) {
                 $extra_button = '<div style="margin-top:6px;">
                 <a href="' . esc_url($trustap_transaction_url) . '" target="_blank"
-                   style="display:inline-block; padding:6px 12px; border-radius:4px; background:#007cba; color:#fff; font-size:0.85em; text-decoration:none;">
+                   style="color: #ffffff;display:inline-block; padding:6px 12px; border-radius:4px; background:#007cba; color:#fff; font-size:0.85em; text-decoration:none;">
                    ' . __('Open Trustap Dashboard', 't4e-pg-trustap') . '
                 </a>
             </div>';
