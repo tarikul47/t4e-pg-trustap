@@ -446,12 +446,14 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
                 't4e-pg-trustap'
             );
 
+            $trustap_transaction_url = "{$base_trustap_url}/transactions/{$trustap_transaction_ID}";
+
             // Vendor-only dashboard button
             if (!empty($trustap_transaction_ID)) {
                 $extra_button = '<div style="margin-top:6px;">
                 <a href="' . esc_url($trustap_transaction_url) . '" target="_blank"
                    style="color: #ffffff !important;display:inline-block; padding:6px 12px; border-radius:4px; background:#007cba; color:#fff; font-size:0.85em; text-decoration:none;">
-                   ' . __('Open Trustap Dashboard', 't4e-pg-trustap') . '
+                   ' . __('Check in Trustap Dashboard', 't4e-pg-trustap') . '
                 </a>
             </div>';
             }
@@ -465,7 +467,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         }
 
         if (!empty($extra_message)) {
-            $status_display .= '<div style="font-size:0.85em; color:#555; margin-top:6px; text-align:left;">'
+            $status_display .= '<div style="font-size:0.85em; color:#555; margin-top:6px; text-align:left; padding: 5px 0px 0px 5px;">'
                 . esc_html($extra_message)
                 . '</div>';
         }
