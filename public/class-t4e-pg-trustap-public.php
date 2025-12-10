@@ -399,54 +399,93 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         // Get raw key from API
         $raw_status = $transaction_details['status'] ?? 'N/A';
 
-        // Status mapping using RAW keys
+        // Status mapping
         $map = [
             'remainder_skipped' => 'Payment deposit',
             'seller_handover_confirmed' => 'Handover confirmed by Seller',
             'buyer_handover_confirmed' => 'Handover confirmed by Buyer',
         ];
 
-        // If the key exists in the map, use custom value
         if (isset($map[$raw_status])) {
             $status = $map[$raw_status];
         } else {
-            // Fallback: convert snake_case → words
             $status = ucfirst(str_replace('_', ' ', $raw_status));
         }
 
         $status = esc_html($status);
 
+        // Build Trustap URL
         $trustap_transaction_ID = $order->get_meta('trustap_transaction_ID');
         $is_test_mode = ($this->trustap_api->environment === 'test');
         $base_trustap_url = $is_test_mode ? 'https://app.stage.trustap.com' : 'https://app.trustap.com';
-        $trustap_transaction_url = '';
 
         $status_link_html = '';
+        $extra_message = '';
+        $extra_button = '';
 
-        //TODO:: We need to show link when admin is product owner 
-
+        // Vendor-only: show Trustap link
         if (!empty($trustap_transaction_ID) && wcfm_is_vendor()) {
+
             $trustap_transaction_url = "{$base_trustap_url}/transactions/{$trustap_transaction_ID}";
-            // 2. Separate Status and Link with a small button/link style
-            $status_link_html = '&nbsp; <a href="' . esc_url($trustap_transaction_url) . '" target="_blank" style="text-decoration: none; padding: 3px 8px; border: 1px solid #ccc; border-radius: 3px; background-color: #f0f0f0; color: #333; font-size: 0.85em;">' . __('View', 't4e-pg-trustap') . '</a>';
-            $status_link_html .= "</br>";
+
+            $status_link_html = '<div>
+            <a href="' . esc_url($trustap_transaction_url) . '" target="_blank"
+               style="text-decoration:none; padding:3px 8px; border:1px solid #ccc; border-radius:3px; background:#f0f0f0; color:#333; font-size:0.85em;">
+               ' . __('View', 't4e-pg-trustap') . '
+            </a>
+        </div>';
         }
 
-        $status_display = $status . $status_link_html;
+        // Show extra message for final handover status
+        if (in_array($raw_status, ['seller_handover_confirmed', 'buyer_handover_confirmed'], true)) {
+
+            $extra_message = __(
+                'After 24 hours, your payment will be released automatically. You can also view your payout status in your Trustap dashboard. If the payment does not appear, please ensure your Trustap profile is fully updated.',
+                't4e-pg-trustap'
+            );
+
+            // Vendor-only dashboard button
+            if (wcfm_is_vendor() && !empty($trustap_transaction_ID)) {
+                $extra_button = '<div style="margin-top:6px;">
+                <a href="' . esc_url($trustap_transaction_url) . '" target="_blank"
+                   style="display:inline-block; padding:6px 12px; border-radius:4px; background:#007cba; color:#fff; font-size:0.85em; text-decoration:none;">
+                   ' . __('Open Trustap Dashboard', 't4e-pg-trustap') . '
+                </a>
+            </div>';
+            }
+        }
+
+        // Build final Status HTML
+        $status_display = '<div style="margin-bottom:4px;">' . $status . '</div>';
+
+        if (!empty($status_link_html)) {
+            $status_display .= $status_link_html;
+        }
+
+        if (!empty($extra_message)) {
+            $status_display .= '<div style="font-size:0.85em; color:#555; margin-top:6px;">'
+                . esc_html($extra_message)
+                . '</div>';
+        }
+
+        if (!empty($extra_button)) {
+            $status_display .= $extra_button;
+        }
 
         // --- Display Rows ---
         ?>
         <tr>
-            <th class="label" colspan="3" style="text-align:left; background-color: #f8f8f8; border-top: 1px solid #eee;">
+            <th class="label" colspan="3" style="text-align:left; background-color:#f8f8f8; border-top:1px solid #eee;">
                 <strong><?php _e('Trustap Details', 't4e-pg-trustap'); ?></strong>
             </th>
         </tr>
         <?php
+
         $generate_row(__('Amount Paid by Client', 't4e-pg-trustap'), $amount_paid);
         $generate_row(__('Withdraw Fees for International Payment', 't4e-pg-trustap'), $international_payment_fee);
-        //  $generate_row(__('Service Fees', 't4e-pg-trustap'), $service_fees);
         $generate_row(__('Seller Total Fees', 't4e-pg-trustap'), $seller_fees);
         $generate_row(__('Expected Payout', 't4e-pg-trustap'), $expected_payout);
         $generate_row(__('Status', 't4e-pg-trustap'), $status_display);
     }
+
 }
