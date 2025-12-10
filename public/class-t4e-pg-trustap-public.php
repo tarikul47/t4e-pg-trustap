@@ -361,7 +361,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
             ?>
             <tr>
                 <th class="label" colspan="2" style="text-align:right;"><?php echo esc_html($label); ?>:</th>
-                <td class="total" style="text-align:center;">
+                <td class="total" style="text-align:center; min-width: 225px;">
                     <div class="view">
                         <?php echo wp_kses_post($value); ?>
                     </div>
