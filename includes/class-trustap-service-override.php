@@ -78,7 +78,7 @@ class Service_Override
         // If the status is not terminal, then proceed with the update.
         $this->save_trustap_transaction_details_on_payment_complete($order_id);
     }
-    
+
     public function t4e_add_confirm_handover_meta_box($post_type, $post)
     {
 
@@ -399,7 +399,9 @@ class Service_Override
 
         if (isset($this->wc_payment_gateway->confirm_handover) && $this->wc_payment_gateway->confirm_handover === 'manually') {
 
-            $order->update_status('handoverpending');
+            // $order->update_status('handoverpending');
+            $order->update_status('processing');
+
 
         } else {
 
