@@ -122,7 +122,15 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
             ];
 
             $response = $this->controller->get_request($trustap_model . 'charge', $data);
-            return json_decode($response['body'], true);
+            $response_code = wp_remote_retrieve_response_code($response);
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+
+            if ($response_code !== 200 || empty($body) || !isset($body['currency'])) {
+                $error_message = isset($body['message']) ? $body['message'] : __('Failed to retrieve charge details from Trustap.', 'wcfm-pg-trustap');
+                throw new Exception($error_message);
+            }
+
+            return $body;
         }
 
         private function create_trustap_transaction(WC_Order $order, $seller_id, $buyer_id, $charge_details, $trustap_model)
@@ -153,7 +161,13 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
 
             $endpoint = $trustap_model . 'me/transactions/' . 'create_with_guest_user';
             $response = $this->controller->post_request($endpoint, $seller_id, $data);
-            $transaction = json_decode($response['body'], true);
+            $response_code = wp_remote_retrieve_response_code($response);
+            $transaction = json_decode(wp_remote_retrieve_body($response), true);
+
+            if ($response_code !== 201 && $response_code !== 200 || empty($transaction) || !isset($transaction['id'])) {
+                $error_message = isset($transaction['message']) ? $transaction['message'] : __('Failed to create Trustap transaction.', 'wcfm-pg-trustap');
+                throw new Exception($error_message);
+            }
 
             $order->update_meta_data('trustap_transaction_ID', Validator::sanitize_integer($transaction['id']));
             $order->update_meta_data('model', $trustap_model);

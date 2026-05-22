@@ -45,6 +45,6 @@ class WCFM_Trustap_Helper
         if (empty($trustap_buyer_id) && isset($_SESSION['buyer_id'])) {
             $trustap_buyer_id = $_SESSION['buyer_id'];
         }
-        return $trustap_buyer_id;
+        return $trustap_buyer_id ? $trustap_buyer_id : '';
     }
 }
