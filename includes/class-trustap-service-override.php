@@ -44,6 +44,9 @@ class Service_Override
 
         $this->wc_payment_gateway = $gateway; // Assuming this is the main gateway class
 
+        $this->register_custom_order_statuses();
+        add_filter('wc_order_statuses', array($this, 'filter_wc_order_statuses'), 20);
+
         remove_all_actions('woocommerce_api_trustap_webhook');
 
         // Add your child webhook handler
@@ -54,7 +57,72 @@ class Service_Override
 
         // add_action('add_meta_boxes', [$this, 't4e_add_confirm_handover_meta_box'], 110000, 2);
         add_action('before_wcfm_orders_details', [$this, 't4e_before_wcfm_orders_details']);
+        add_action('add_meta_boxes', [$this, 'remove_parent_trustap_meta_boxes'], 999);
         // do_action('before_wcfm_orders_details', $order_id);
+    }
+
+    public function remove_parent_trustap_meta_boxes()
+    {
+        remove_meta_box('trustap-shipping-meta-box', 'shop_order', 'side');
+        remove_meta_box('trustap-confirm-handover-meta-box', 'shop_order', 'side');
+        remove_meta_box('trustap-accept-complaint-meta-box', 'shop_order', 'side');
+        
+        // Also for HPOS
+        remove_meta_box('trustap-shipping-meta-box', 'woocommerce_page_wc-orders', 'side');
+        remove_meta_box('trustap-confirm-handover-meta-box', 'woocommerce_page_wc-orders', 'side');
+        remove_meta_box('trustap-accept-complaint-meta-box', 'woocommerce_page_wc-orders', 'side');
+    }
+
+    public function register_custom_order_statuses()
+    {
+        $order_statuses = [
+            'wc-complained-buyer' => [
+                'label'                     => 'Complained by Buyer',
+                'public'                    => true,
+                'show_in_admin_status_list' => true,
+                'show_in_admin_all_list'    => true,
+                'exclude_from_search'       => false,
+                'label_count'               => _n_noop('Complained by Buyer <span class="count">(%s)</span>', 'Complained by Buyer <span class="count">(%s)</span>', 't4e-pg-trustap'),
+            ],
+            'wc-complaint-accepted' => [
+                'label'                     => 'Complaint Accepted',
+                'public'                    => true,
+                'show_in_admin_status_list' => true,
+                'show_in_admin_all_list'    => true,
+                'exclude_from_search'       => false,
+                'label_count'               => _n_noop('Complaint Accepted <span class="count">(%s)</span>', 'Complaint Accepted <span class="count">(%s)</span>', 't4e-pg-trustap'),
+            ],
+            'wc-refunded-buyer' => [
+                'label'                     => 'Refunded to Buyer',
+                'public'                    => true,
+                'show_in_admin_status_list' => true,
+                'show_in_admin_all_list'    => true,
+                'exclude_from_search'       => false,
+                'label_count'               => _n_noop('Refunded to Buyer <span class="count">(%s)</span>', 'Refunded to Buyer <span class="count">(%s)</span>', 't4e-pg-trustap'),
+            ],
+        ];
+
+        foreach ($order_statuses as $key => $status) {
+            register_post_status($key, $status);
+        }
+    }
+
+    public function filter_wc_order_statuses($order_statuses)
+    {
+        // Remove parent Trustap custom statuses from the list
+        unset($order_statuses['wc-shipped']);
+        unset($order_statuses['wc-handoverpending']);
+        unset($order_statuses['wc-handoverconfirmed']);
+        unset($order_statuses['wc-complainedbybuyer']);
+        unset($order_statuses['wc-complaintaccepted']);
+        unset($order_statuses['wc-refundedtobuyer']);
+
+        // Add our new custom statuses
+        $order_statuses['wc-complained-buyer'] = __('Complained by Buyer', 't4e-pg-trustap');
+        $order_statuses['wc-complaint-accepted'] = __('Complaint Accepted', 't4e-pg-trustap');
+        $order_statuses['wc-refunded-buyer'] = __('Refunded to Buyer', 't4e-pg-trustap');
+
+        return $order_statuses;
     }
 
     public function t4e_before_wcfm_orders_details($order_id)
@@ -88,20 +156,20 @@ class Service_Override
         $logger = wc_get_logger();
         $logger->info('t4e_add_confirm_handover_meta_box', ['source' => 'service-override']);
 
-
-
-        // if (!$order) {
-        //     return;
-        // }
-        // if (strpos($order->get_meta('model'), "p2p/") === false) {
-        //     return;
-        // }
-        // if ($order->get_payment_method() !== 'trustap') {
-        //     return;
-        // }
-        // if (!$order->has_status('handoverpending')) {
-        //     return;
-        // }
+        if (!$order) {
+            return;
+        }
+        if (strpos($order->get_meta('model'), "p2p/") === false) {
+            return;
+        }
+        if ($order->get_payment_method() !== 'trustap') {
+            return;
+        }
+        
+        // Handover pending is now mapped to processing
+        if (!$order->has_status('processing')) {
+            return;
+        }
 
         add_meta_box(
             't4e-trustap-confirm-handover-meta-box_ffnnn',
@@ -294,8 +362,8 @@ class Service_Override
             ) {
 
                 if ($order) {
-
-                    $order->update_status('handoverconfirmed');
+                    // handover_confirmed = completed
+                    $order->update_status('completed');
 
                 }
 
@@ -303,7 +371,7 @@ class Service_Override
 
                 if ($order) {
 
-                    $order->update_status('complainedbybuyer');
+                    $order->update_status('complained-buyer');
 
                     $order->add_order_note(__('Complaint raised by the buyer.', 'trustap-payment-gateway'));
 
@@ -313,7 +381,7 @@ class Service_Override
 
                 if ($order) {
 
-                    $order->update_status('refundedtobuyer');
+                    $order->update_status('refunded-buyer');
 
                     $order->add_order_note(__('Funds were refunded to the buyer.', 'trustap-payment-gateway'));
 
@@ -398,10 +466,8 @@ class Service_Override
     {
 
         if (isset($this->wc_payment_gateway->confirm_handover) && $this->wc_payment_gateway->confirm_handover === 'manually') {
-
-            // $order->update_status('handoverpending');
+            // handover_pending = processing
             $order->update_status('processing');
-
 
         } else {
 

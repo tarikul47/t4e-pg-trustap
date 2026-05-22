@@ -124,8 +124,6 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
 
             $response = $this->controller->get_request($trustap_model . 'charge', $data);
             
-            amaturlog($response);
-            
             return json_decode($response['body'], true);
         }
 

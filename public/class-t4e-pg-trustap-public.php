@@ -250,7 +250,7 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
 
     public function wcfm_show_handover_button($order)
     {
-        if (!$order || !$order->has_status('handoverpending')) {
+        if (!$order || !$order->has_status('processing')) {
             return;
         }
 
@@ -304,11 +304,11 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
             'in_progress' => 'processing',
             'completed' => 'completed',
             'cancelled' => 'cancelled',
-            'complained' => 'on-hold',
+            'complained' => 'complained-buyer',
             'deposit_paid' => 'processing',
-            'buyer_handover_confirmed' => 'handoverconfirmed',
-            'seller_handover_confirmed' => 'handoverconfirmed',
-            'deposit_refunded' => 'refunded',
+            'buyer_handover_confirmed' => 'completed',
+            'seller_handover_confirmed' => 'completed',
+            'deposit_refunded' => 'refunded-buyer',
         );
 
         // a list of all available statutes can be found here: https://docs.trustap.com/docs/api-webhooks

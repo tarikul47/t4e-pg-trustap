@@ -78,7 +78,7 @@ class T4e_Pg_Trustap_Admin extends T4e_Pg_Trustap_Core
 		if ($order->get_payment_method() !== 'trustap') {
 			return;
 		}
-		if (!$order->has_status('handoverpending')) {
+		if (!$order->has_status('processing')) {
 			return;
 		}
 
@@ -90,6 +90,38 @@ class T4e_Pg_Trustap_Admin extends T4e_Pg_Trustap_Core
 			'side',
 			'high'
 		);
+	}
+
+	public function t4e_add_accept_complaint_meta_box($post_type, $post)
+	{
+		$order = wc_get_order($post->ID);
+
+		if (!$order || $order->get_payment_method() !== 'trustap') {
+			return;
+		}
+
+		if (!$order->has_status('complained-buyer')) {
+			return;
+		}
+
+		add_meta_box(
+			't4e-trustap-accept-complaint-meta-box',
+			'Trustap Accept Complaint',
+			[$this, 't4e_accept_complaint_meta_box'],
+			'woocommerce_page_wc-orders',
+			'side',
+			'high'
+		);
+	}
+
+	public function t4e_accept_complaint_meta_box()
+	{
+		$args = [
+			'accept_complaint_url' => get_rest_url(null, 't4e-pg-trustap/v1/accept-complaint'),
+			'nonce' => wp_create_nonce('wp_rest'),
+		];
+		extract($args);
+		include(plugin_dir_path(__FILE__) . 'partials/t4e-accept-complaint.php');
 	}
 
 	public function t4e_confirm_handover_meta_box()
@@ -255,6 +287,7 @@ class T4e_Pg_Trustap_Admin extends T4e_Pg_Trustap_Core
 
 		$localized_data = array(
 			'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
+			'accept_complaint_url' => get_rest_url(null, 't4e-pg-trustap/v1/accept-complaint'),
 			'nonce' => wp_create_nonce('wp_rest'),
 		);
 		wp_localize_script($this->plugin_name, 't4e_pg_trustap_admin_data', $localized_data);

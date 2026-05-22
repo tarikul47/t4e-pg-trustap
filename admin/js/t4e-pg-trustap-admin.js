@@ -44,6 +44,45 @@
           spinner.style.display = "none";
         });
     });
+
+    // Accept Complaint
+    $("#t4e-accept-complaint-button").on("click", function () {
+      const button = this;
+      const confirmed = confirm("This action will trigger a refund to the buyer. Are you sure you want to proceed?");
+      if (!confirmed) return;
+
+      $(button).prop('disabled', true);
+
+      const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+      });
+      let orderId = params.id;
+
+      fetch(t4e_pg_trustap_admin_data.accept_complaint_url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-WP-Nonce": t4e_pg_trustap_admin_data.nonce,
+        },
+        credentials: "include",
+        body: JSON.stringify({ orderId }),
+      })
+        .then(async (response) => {
+          let data = await response.json();
+          if (response.ok) {
+            alert(data.message || "Complaint accepted successfully!");
+            location.reload();
+          } else {
+            alert(data.message || "Failed to accept complaint!");
+          }
+        })
+        .catch((error) => {
+          alert("Error: " + error.message);
+        })
+        .finally(() => {
+          $(button).prop('disabled', false);
+        });
+    });
   });
 
   // $(document).ready(function () {
