@@ -64,7 +64,7 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
                     'redirect' => $redirect_url,
                 ];
             } catch (Exception $e) {
-                $this->log('Process payment error: ' . $e->getMessage());
+                $this->log('Process payment error custom: ' . $e->getMessage());
                 wc_add_notice($e->getMessage(), 'error');
                 return;
             }
