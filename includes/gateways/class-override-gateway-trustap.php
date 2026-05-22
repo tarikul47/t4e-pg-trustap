@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
 use Trustap\PaymentGateway\Controller\AbstractController;
 use Trustap\PaymentGateway\Gateway as Trustap_Gateway;
 use Trustap\PaymentGateway\Helper\Validator;
+use Trustap\PaymentGateway\Enumerators\Uri as UriEnumerator;
 
 if (class_exists('Trustap\PaymentGateway\Gateway')) {
     class Override_Gateway_Trustap extends Trustap_Gateway
@@ -121,11 +122,17 @@ if (class_exists('Trustap\PaymentGateway\Gateway')) {
                 'currency' => strtolower(get_woocommerce_currency()),
             ];
 
+            $mode = $GLOBALS['testmode'] ? 'test' : 'live';
+            $api_key_hint = substr($this->controller->api_key, 0, 4) . '...';
+            error_log('Retrieving charge details for model: ' . $trustap_model . ' mode: ' . $mode . ' API Key hint: ' . $api_key_hint . ' URL: ' . UriEnumerator::API_URL() . ' with data: ' . json_encode($data));
+
             $response = $this->controller->get_request($trustap_model . 'charge', $data);
             $response_code = wp_remote_retrieve_response_code($response);
-            $body = json_decode(wp_remote_retrieve_body($response), true);
+            $body_raw = wp_remote_retrieve_body($response);
+            $body = json_decode($body_raw, true);
 
             if ($response_code !== 200 || empty($body) || !isset($body['currency'])) {
+                error_log('Charge details retrieval failed. Response Code: ' . $response_code . ' Body: ' . $body_raw);
                 $error_message = isset($body['message']) ? $body['message'] : __('Failed to retrieve charge details from Trustap.', 'wcfm-pg-trustap');
                 throw new Exception($error_message);
             }
