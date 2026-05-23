@@ -172,8 +172,8 @@ class Service_Override
         }
 
         add_meta_box(
-            't4e-trustap-confirm-handover-meta-box_ffnnn',
-            'Trustap Handover Custopmmm',
+            't4e-trustap-confirm-handover-meta-box',
+            'Trustap Handover',
             [$this, 't4e_confirm_handover_meta_box'],
             'page',
             'side',

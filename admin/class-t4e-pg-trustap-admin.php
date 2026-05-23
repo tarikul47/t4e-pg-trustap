@@ -83,8 +83,8 @@ class T4e_Pg_Trustap_Admin extends T4e_Pg_Trustap_Core
 		}
 
 		add_meta_box(
-			't4e-trustap-confirm-handover-meta-box_ffnnn',
-			'Trustap Handover Custopmmm',
+			't4e-trustap-confirm-handover-meta-box',
+			'Trustap Handover',
 			[$this, 't4e_confirm_handover_meta_box'],
 			'woocommerce_page_wc-orders',
 			'side',
