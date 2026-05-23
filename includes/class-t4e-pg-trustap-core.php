@@ -92,6 +92,16 @@ class T4e_Pg_Trustap_Core
                 array('status' => $response_status)
             );
         }
+
+        // Update meta to prevent redundant sync calls
+        $transaction_details = $order->get_meta('_trustap_transaction_details');
+        if (!is_array($transaction_details)) {
+            $transaction_details = [];
+        }
+        $transaction_details['status'] = 'complaint_accepted';
+        $order->update_meta_data('_trustap_transaction_details', $transaction_details);
+        $order->save();
+
         return true;
     }
 
@@ -158,6 +168,100 @@ class T4e_Pg_Trustap_Core
                 array('status' => $response_status)
             );
         }
+
+        // Update meta to prevent redundant sync calls
+        $transaction_details = $order->get_meta('_trustap_transaction_details');
+        if (!is_array($transaction_details)) {
+            $transaction_details = [];
+        }
+        $transaction_details['status'] = 'completed';
+        $order->update_meta_data('_trustap_transaction_details', $transaction_details);
+        $order->save();
+
         return true;
+    }
+
+    /**
+     * Synchronize Trustap handover when WooCommerce order status is changed to completed.
+     * 
+     * @param int $order_id
+     */
+    public function t4e_sync_handover_on_status_change($order_id)
+    {
+        static $syncing = [];
+        if (isset($syncing[$order_id])) {
+            return;
+        }
+
+        $order = wc_get_order($order_id);
+        if (!$order || $order->get_payment_method() !== 'trustap') {
+            return;
+        }
+
+        $syncing[$order_id] = true;
+
+        // Check if Trustap transaction exists
+        $transaction_id = $order->get_meta('trustap_transaction_ID');
+        if (empty($transaction_id)) {
+            return;
+        }
+
+        // Check if it's already confirmed in meta to avoid redundant API calls
+        $transaction_details = $order->get_meta('_trustap_transaction_details');
+        $terminal_statuses = ['completed', 'buyer_handover_confirmed', 'seller_handover_confirmed', 'Funds Released'];
+        if (isset($transaction_details['status']) && in_array($transaction_details['status'], $terminal_statuses)) {
+            return;
+        }
+        
+        // Attempt to confirm handover via API
+        $result = $this->confirm_handover($order);
+
+        if (is_wp_error($result)) {
+            $order->add_order_note(__('Trustap Handover Sync Error: ', 't4e-pg-trustap') . $result->get_error_message());
+        } else {
+            $order->add_order_note(__('Trustap Handover Sync: Handover confirmed successfully.', 't4e-pg-trustap'));
+        }
+    }
+
+    /**
+     * Synchronize Trustap complaint acceptance when WooCommerce order status is changed to complaint-accepted.
+     * 
+     * @param int $order_id
+     */
+    public function t4e_sync_complaint_acceptance_on_status_change($order_id)
+    {
+        static $syncing = [];
+        if (isset($syncing[$order_id])) {
+            return;
+        }
+
+        $order = wc_get_order($order_id);
+        if (!$order || $order->get_payment_method() !== 'trustap') {
+            return;
+        }
+
+        $syncing[$order_id] = true;
+
+        // Check if Trustap transaction exists
+        $transaction_id = $order->get_meta('trustap_transaction_ID');
+        if (empty($transaction_id)) {
+            return;
+        }
+
+        // Check if it's already accepted in meta
+        $transaction_details = $order->get_meta('_trustap_transaction_details');
+        $terminal_statuses = ['complaint_accepted', 'refunded', 'deposit_refunded'];
+        if (isset($transaction_details['status']) && in_array($transaction_details['status'], $terminal_statuses)) {
+            return;
+        }
+        
+        // Attempt to accept complaint via API
+        $result = $this->accept_complaint($order);
+
+        if (is_wp_error($result)) {
+            $order->add_order_note(__('Trustap Complaint Sync Error: ', 't4e-pg-trustap') . $result->get_error_message());
+        } else {
+            $order->add_order_note(__('Trustap Complaint Sync: Complaint accepted successfully.', 't4e-pg-trustap'));
+        }
     }
 }

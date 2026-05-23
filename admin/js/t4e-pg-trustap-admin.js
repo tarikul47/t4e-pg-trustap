@@ -2,11 +2,11 @@
   "use strict";
 
   $(document).ready(function () {
+    // 1. Existing Manual Buttons
     $("#t4e-confirm-handover-button-admin").on("click", function () {
       const button = this;
       const spinner = document.getElementById("t4e-handover-spinner");
 
-      // ✅ Confirm before proceeding
       const confirmed = confirm("Are you sure you want to confirm handover?");
       if (!confirmed) return;
 
@@ -14,9 +14,9 @@
       spinner.style.display = "block";
 
       const params = new Proxy(new URLSearchParams(window.location.search), {
-        get: (searchParams, prop) => searchParams.get(prop),
+        get: (searchParams, prop) => searchParams.get(prop) || searchParams.get('post'),
       });
-      let orderId = params.id;
+      let orderId = params.id || params.post;
 
       fetch(t4e_pg_trustap_admin_data.confirm_handover_url, {
         method: "POST",
@@ -45,7 +45,6 @@
         });
     });
 
-    // Accept Complaint
     $("#t4e-accept-complaint-button").on("click", function () {
       const button = this;
       const confirmed = confirm("This action will trigger a refund to the buyer. Are you sure you want to proceed?");
@@ -54,9 +53,9 @@
       $(button).prop('disabled', true);
 
       const params = new Proxy(new URLSearchParams(window.location.search), {
-        get: (searchParams, prop) => searchParams.get(prop),
+        get: (searchParams, prop) => searchParams.get(prop) || searchParams.get('post'),
       });
-      let orderId = params.id;
+      let orderId = params.id || params.post;
 
       fetch(t4e_pg_trustap_admin_data.accept_complaint_url, {
         method: "POST",
@@ -83,52 +82,35 @@
           $(button).prop('disabled', false);
         });
     });
+
+    // 2. Intercept Status Dropdown Changes in Admin Order Details
+    if (t4e_pg_trustap_admin_data.payment_method === 'trustap') {
+      const $statusSelect = $('select#order_status, select[name="order_status"]');
+      
+      // We listen for the 'change' on the select, but we need to intercept the 'Update' button click
+      // or provide a warning immediately on change.
+      $statusSelect.on('change', function() {
+        const newStatus = $(this).val();
+        let message = '';
+
+        if (newStatus === 'wc-completed' || newStatus === 'completed') {
+          message = "Changing status to 'Completed' will automatically release the funds to the seller on Trustap. Do you want to continue?";
+        } else if (newStatus === 'wc-complaint-accepted' || newStatus === 'complaint-accepted') {
+          message = "Changing status to 'Complaint Accepted' will automatically trigger a refund to the buyer on Trustap. Do you want to continue?";
+        }
+
+        if (message && !confirm(message)) {
+          // Revert to previous value (this is tricky, so we store it)
+          $(this).val($(this).data('prev-val'));
+          return false;
+        }
+        
+        $(this).data('prev-val', newStatus);
+      });
+
+      // Initialize prev-val
+      $statusSelect.data('prev-val', $statusSelect.val());
+    }
   });
 
-  // $(document).ready(function () {
-  //   $('#t4e-confirm-handover-button-admin').on('click', function (e) {
-  //     e.preventDefault();
-
-  //     if (!confirm('Are you sure you want to confirm handover?')) {
-  //       return;
-  //     }
-
-  //     var $button = $(this);
-  //     var $messageDiv = $('#t4e-handover-message-admin');
-
-  //     $button.prop('disabled', true).text('Confirming...');
-  //     $messageDiv.empty();
-
-  //     $.ajax({
-  //       url: t4e_pg_trustap_admin_data.confirm_handover_url,
-  //       method: 'POST',
-  //       beforeSend: function (xhr) {
-  //         xhr.setRequestHeader('X-WP-Nonce', t4e_pg_trustap_admin_data.nonce);
-  //       },
-  //       data: {
-  //         orderId: t4e_pg_trustap_admin_data.order_id
-  //       },
-  //       success: function (response) {
-  //         if (response.success) {
-  //           $messageDiv.css('color', 'green').text('Handover confirmed successfully! Page will reload.');
-  //           setTimeout(function () {
-  //             window.location.reload();
-  //           }, 2000);
-  //         } else {
-  //           var errorMessage = response.data && response.data.message ? response.data.message : 'An unknown error occurred.';
-  //           $messageDiv.css('color', 'red').text('Error: ' + errorMessage);
-  //           $button.prop('disabled', false).text('Confirm Handover');
-  //         }
-  //       },
-  //       error: function (jqXHR) {
-  //           var errorMessage = 'An unexpected error occurred. Please try again.';
-  //           if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
-  //               errorMessage = jqXHR.responseJSON.message;
-  //           }
-  //           $messageDiv.css('color', 'red').text('Error: ' + errorMessage);
-  //           $button.prop('disabled', false).text('Confirm Handover');
-  //       }
-  //     });
-  //   });
-  // });
 })(jQuery);

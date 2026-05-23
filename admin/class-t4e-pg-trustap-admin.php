@@ -285,10 +285,23 @@ class T4e_Pg_Trustap_Admin extends T4e_Pg_Trustap_Core
 
 		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/t4e-pg-trustap-admin.js', array('jquery'), $this->version, true);
 
+		$order_id = isset($_GET['id']) ? absint($_GET['id']) : 0;
+		if (!$order_id && isset($_GET['post'])) {
+			$order_id = absint($_GET['post']);
+		}
+		$payment_method = '';
+		if ($order_id) {
+			$order = wc_get_order($order_id);
+			if ($order) {
+				$payment_method = $order->get_payment_method();
+			}
+		}
+
 		$localized_data = array(
 			'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
 			'accept_complaint_url' => get_rest_url(null, 't4e-pg-trustap/v1/accept-complaint'),
 			'nonce' => wp_create_nonce('wp_rest'),
+			'payment_method' => $payment_method,
 		);
 		wp_localize_script($this->plugin_name, 't4e_pg_trustap_admin_data', $localized_data);
 	}

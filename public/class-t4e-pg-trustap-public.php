@@ -330,9 +330,22 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
     {
         wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/t4e-pg-trustap-public.js', array('jquery'), $this->version, true);
 
+        $order_id = 0;
+        if (isset($_GET['item'])) {
+            $order_id = absint($_GET['item']);
+        }
+        $payment_method = '';
+        if ($order_id) {
+            $order = wc_get_order($order_id);
+            if ($order) {
+                $payment_method = $order->get_payment_method();
+            }
+        }
+
         $localized_data = array(
             'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
             'nonce' => wp_create_nonce('wp_rest'),
+            'payment_method' => $payment_method,
         );
         wp_localize_script($this->plugin_name, 't4e_pg_trustap_public_data', $localized_data);
     }

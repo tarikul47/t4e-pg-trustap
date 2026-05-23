@@ -2,6 +2,7 @@
   "use strict";
 
   $(document).ready(function () {
+    // 1. Manual Handover Button
     $('#t4e-confirm-handover-button').on('click', function (e) {
       e.preventDefault();
 
@@ -40,6 +41,32 @@
         button.prop('disabled', false).text('Confirm Handover');
       });
     });
+
+    // 2. Intercept Status Dropdown Changes in WCFM Order Details
+    if (t4e_pg_trustap_public_data.payment_method === 'trustap') {
+        const $wcfmStatusSelect = $('#wcfm_order_status');
+        
+        $wcfmStatusSelect.on('change', function() {
+          const newStatus = $(this).val();
+          let message = '';
+  
+          if (newStatus === 'completed') {
+            message = "Changing status to 'Completed' will automatically release the funds to the seller on Trustap. Do you want to continue?";
+          } else if (newStatus === 'complaint-accepted') {
+            message = "Changing status to 'Complaint Accepted' will automatically trigger a refund to the buyer on Trustap. Do you want to continue?";
+          }
+  
+          if (message && !confirm(message)) {
+            $(this).val($(this).data('prev-val'));
+            return false;
+          }
+          
+          $(this).data('prev-val', newStatus);
+        });
+  
+        // Initialize prev-val
+        $wcfmStatusSelect.data('prev-val', $wcfmStatusSelect.val());
+    }
   });
 
 })(jQuery);

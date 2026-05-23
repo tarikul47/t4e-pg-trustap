@@ -201,6 +201,9 @@ class T4e_Pg_Trustap
 		$this->loader->add_action('add_meta_boxes', $plugin_admin, 't4e_add_confirm_handover_meta_box', 10, 2);
 		$this->loader->add_action('add_meta_boxes', $plugin_admin, 't4e_add_accept_complaint_meta_box', 10, 2);
 
+		$this->loader->add_action('woocommerce_order_status_completed', $plugin_admin, 't4e_sync_handover_on_status_change', 10, 1);
+		$this->loader->add_action('woocommerce_order_status_complaint-accepted', $plugin_admin, 't4e_sync_complaint_acceptance_on_status_change', 10, 1);
+
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
 		$this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');
 
