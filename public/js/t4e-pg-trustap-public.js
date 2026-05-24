@@ -3,18 +3,18 @@
 
   $(document).ready(function () {
     // 1. Manual Handover Button
-    $('#t4e-confirm-handover-button').on('click', function (e) {
+    $("#t4e-confirm-handover-button").on("click", function (e) {
       e.preventDefault();
 
-      if (!confirm('Are you sure you want to confirm handover?')) {
+      if (!confirm("Are you sure you want to confirm handover?")) {
         return;
       }
 
       const button = $(this);
-      const messageDiv = $('#t4e-handover-message');
-      const orderId = button.data('order-id');
+      const messageDiv = $("#t4e-handover-message");
+      const orderId = button.data("order-id");
 
-      button.prop('disabled', true).text('Confirming...');
+      button.prop("disabled", true).text("Confirming...");
       messageDiv.empty();
 
       fetch(t4e_pg_trustap_public_data.confirm_handover_url, {
@@ -26,47 +26,57 @@
         credentials: "include",
         body: JSON.stringify({ orderId: orderId }),
       })
-      .then(async (response) => {
-        let data = await response.json();
-        if (response.ok) {
-          messageDiv.css('color', 'green').text(data.message || 'Handover confirmed successfully! Page will reload.');
-          setTimeout(() => window.location.reload(), 2000);
-        } else {
-          messageDiv.css('color', 'red').text('Error: ' + (data.message || 'Handover confirmation failed!'));
-          button.prop('disabled', false).text('Confirm Handover');
-        }
-      })
-      .catch((error) => {
-        messageDiv.css('color', 'red').text('Error: ' + error.message);
-        button.prop('disabled', false).text('Confirm Handover');
-      });
+        .then(async (response) => {
+          let data = await response.json();
+          if (response.ok) {
+            messageDiv
+              .css("color", "green")
+              .text(
+                data.message ||
+                  "Handover confirmed successfully! Page will reload.",
+              );
+            setTimeout(() => window.location.reload(), 2000);
+          } else {
+            messageDiv
+              .css("color", "red")
+              .text(
+                "Error: " + (data.message || "Handover confirmation failed!"),
+              );
+            button.prop("disabled", false).text("Confirm Handover");
+          }
+        })
+        .catch((error) => {
+          messageDiv.css("color", "red").text("Error: " + error.message);
+          button.prop("disabled", false).text("Confirm Handover");
+        });
     });
 
     // 2. Intercept Status Dropdown Changes in WCFM Order Details
-    if (t4e_pg_trustap_public_data.payment_method === 'trustap') {
-        const $wcfmStatusSelect = $('#wcfm_order_status');
-        
-        $wcfmStatusSelect.on('change', function() {
-          const newStatus = $(this).val();
-          let message = '';
-  
-          if (newStatus === 'completed') {
-            message = "Changing status to 'Completed' will automatically release the funds to the seller on Trustap. Do you want to continue?";
-          } else if (newStatus === 'complaint-accepted') {
-            message = "Changing status to 'Complaint Accepted' will automatically trigger a refund to the buyer on Trustap. Do you want to continue?";
-          }
-  
-          if (message && !confirm(message)) {
-            $(this).val($(this).data('prev-val'));
-            return false;
-          }
-          
-          $(this).data('prev-val', newStatus);
-        });
-  
-        // Initialize prev-val
-        $wcfmStatusSelect.data('prev-val', $wcfmStatusSelect.val());
+    if (t4e_pg_trustap_public_data.payment_method === "trustap") {
+      const $wcfmStatusSelect = $("#wcfm_order_status");
+
+      $wcfmStatusSelect.on("change", function () {
+        const newStatus = $(this).val();
+        let message = "";
+
+        if (newStatus === "completed") {
+          message =
+            "Changing status to 'Completed' will automatically release the funds to the seller on Trustap. Do you want to continue?";
+        } else if (newStatus === "complaint-accepted") {
+          message =
+            "Changing status to 'Complaint Accepted' will automatically trigger a refund to the buyer on Trustap. Do you want to continue?";
+        }
+
+        if (message && !confirm(message)) {
+          $(this).val($(this).data("prev-val"));
+          return false;
+        }
+
+        $(this).data("prev-val", newStatus);
+      });
+
+      // Initialize prev-val
+      $wcfmStatusSelect.data("prev-val", $wcfmStatusSelect.val());
     }
   });
-
 })(jQuery);

@@ -333,7 +333,16 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         $order_id = 0;
         if (isset($_GET['item'])) {
             $order_id = absint($_GET['item']);
+        } elseif (isset($_GET['ID'])) {
+            $order_id = absint($_GET['ID']);
+        } elseif (isset($_GET['order_id'])) {
+            $order_id = absint($_GET['order_id']);
+        } elseif (isset($_GET['id'])) {
+            $order_id = absint($_GET['id']);
+        } elseif (get_query_var('wcfm-orders-details')) {
+            $order_id = absint(get_query_var('wcfm-orders-details'));
         }
+
         $payment_method = '';
         if ($order_id) {
             $order = wc_get_order($order_id);
