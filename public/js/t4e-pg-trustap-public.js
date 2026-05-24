@@ -6,7 +6,7 @@
     $("#t4e-confirm-handover-button").on("click", function (e) {
       e.preventDefault();
 
-      if (!confirm("Are you sure you want to confirm handover and release the funds?")) {
+      if (!confirm("Changing status to 'Completed' will automatically release the funds to the seller on Trustap. Do you want to continue?")) {
         return;
       }
 

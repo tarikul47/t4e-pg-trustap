@@ -7,7 +7,7 @@
       const button = this;
       const spinner = document.getElementById("t4e-handover-spinner");
 
-      const confirmed = confirm("Are you sure you want to confirm handover and release the funds?");
+      const confirmed = confirm("Changing status to 'Completed' will automatically release the funds to the seller on Trustap. Do you want to continue?");
       if (!confirmed) return;
 
       button.style.display = "none";
