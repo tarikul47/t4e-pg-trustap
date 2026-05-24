@@ -6,7 +6,7 @@
     $("#t4e-confirm-handover-button").on("click", function (e) {
       e.preventDefault();
 
-      if (!confirm("Are you sure you want to confirm handover?")) {
+      if (!confirm("Are you sure you want to confirm handover and release the funds?")) {
         return;
       }
 
@@ -33,8 +33,18 @@
               .css("color", "green")
               .text(
                 data.message ||
-                  "Handover confirmed successfully! Page will reload.",
+                  "Handover confirmed successfully! Syncing status...",
               );
+            
+            // Sync the dropdown status to 'completed'
+            const $wcfmStatusSelect = $("#wcfm_order_status");
+            if ($wcfmStatusSelect.length) {
+              $wcfmStatusSelect.val('completed');
+              if ($wcfmStatusSelect.hasClass("select2-hidden-accessible")) {
+                $wcfmStatusSelect.trigger("change.select2");
+              }
+            }
+
             setTimeout(() => window.location.reload(), 2000);
           } else {
             messageDiv
@@ -42,12 +52,12 @@
               .text(
                 "Error: " + (data.message || "Handover confirmation failed!"),
               );
-            button.prop("disabled", false).text("Confirm Handover");
+            button.prop("disabled", false).text("Confirm & Release Funds");
           }
         })
         .catch((error) => {
           messageDiv.css("color", "red").text("Error: " + error.message);
-          button.prop("disabled", false).text("Confirm Handover");
+          button.prop("disabled", false).text("Confirm & Release Funds");
         });
     });
 

@@ -7,7 +7,7 @@
       const button = this;
       const spinner = document.getElementById("t4e-handover-spinner");
 
-      const confirmed = confirm("Are you sure you want to confirm handover?");
+      const confirmed = confirm("Are you sure you want to confirm handover and release the funds?");
       if (!confirmed) return;
 
       button.style.display = "none";
@@ -30,6 +30,12 @@
         .then(async (response) => {
           let data = await response.json();
           if (response.ok) {
+            // Sync the dropdown status to 'completed'
+            const $statusSelect = $('select#order_status, select[name="order_status"]');
+            if ($statusSelect.length) {
+              $statusSelect.val('wc-completed');
+            }
+
             alert(data.message || "Handover confirmed successfully!");
             location.reload();
           } else {
@@ -69,6 +75,12 @@
         .then(async (response) => {
           let data = await response.json();
           if (response.ok) {
+            // Sync the dropdown status to 'complaint-accepted'
+            const $statusSelect = $('select#order_status, select[name="order_status"]');
+            if ($statusSelect.length) {
+              $statusSelect.val('wc-complaint-accepted');
+            }
+
             alert(data.message || "Complaint accepted successfully!");
             location.reload();
           } else {
