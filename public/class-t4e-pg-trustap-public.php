@@ -344,10 +344,24 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
         }
 
         $payment_method = '';
+        $funds_released = false;
+        $complaint_accepted = false;
+
         if ($order_id) {
             $order = wc_get_order($order_id);
             if ($order) {
                 $payment_method = $order->get_payment_method();
+                $transaction_details = $order->get_meta('_trustap_transaction_details');
+
+                $terminal_handover_statuses = ['completed', 'buyer_handover_confirmed', 'seller_handover_confirmed', 'Funds Released'];
+                if (isset($transaction_details['status']) && in_array($transaction_details['status'], $terminal_handover_statuses)) {
+                    $funds_released = true;
+                }
+
+                $terminal_refund_statuses = ['complaint_accepted', 'refunded', 'deposit_refunded'];
+                if (isset($transaction_details['status']) && in_array($transaction_details['status'], $terminal_refund_statuses)) {
+                    $complaint_accepted = true;
+                }
             }
         }
 
@@ -355,6 +369,8 @@ class T4e_Pg_Trustap_Public extends T4e_Pg_Trustap_Core
             'confirm_handover_url' => get_rest_url(null, 't4e-pg-trustap/v1/confirm-handover'),
             'nonce' => wp_create_nonce('wp_rest'),
             'payment_method' => $payment_method,
+            'funds_released' => $funds_released,
+            'complaint_accepted' => $complaint_accepted,
         );
         wp_localize_script($this->plugin_name, 't4e_pg_trustap_public_data', $localized_data);
     }

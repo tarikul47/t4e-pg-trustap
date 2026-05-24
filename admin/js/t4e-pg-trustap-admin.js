@@ -2,8 +2,17 @@
   "use strict";
 
   $(document).ready(function () {
-    // 1. Existing Manual Buttons
-    $("#t4e-confirm-handover-button-admin").on("click", function () {
+    const data = t4e_pg_trustap_admin_data;
+
+    // 1. Manual Handover Button
+    const $handoverBtn = $("#t4e-confirm-handover-button-admin");
+    if (data.funds_released) {
+      $handoverBtn.prop("disabled", true).text("Funds Released").css("background", "#999").css("border-color", "#999");
+    }
+
+    $handoverBtn.on("click", function () {
+      if (data.funds_released) return;
+
       const button = this;
       const spinner = document.getElementById("t4e-handover-spinner");
 
@@ -18,28 +27,26 @@
       });
       let orderId = params.id || params.post;
 
-      fetch(t4e_pg_trustap_admin_data.confirm_handover_url, {
+      fetch(data.confirm_handover_url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-WP-Nonce": t4e_pg_trustap_admin_data.nonce,
+          "X-WP-Nonce": data.nonce,
         },
         credentials: "include",
         body: JSON.stringify({ orderId }),
       })
         .then(async (response) => {
-          let data = await response.json();
+          let resData = await response.json();
           if (response.ok) {
-            // Sync the dropdown status to 'completed'
             const $statusSelect = $('select#order_status, select[name="order_status"]');
             if ($statusSelect.length) {
               $statusSelect.val('wc-completed');
             }
-
-            alert(data.message || "Handover confirmed successfully!");
+            alert(resData.message || "Handover confirmed successfully!");
             location.reload();
           } else {
-            alert(data.message || "Handover confirmation failed!");
+            alert(resData.message || "Handover confirmation failed!");
           }
         })
         .catch((error) => {
@@ -51,7 +58,15 @@
         });
     });
 
-    $("#t4e-accept-complaint-button").on("click", function () {
+    // 2. Manual Accept Complaint Button
+    const $complaintBtn = $("#t4e-accept-complaint-button");
+    if (data.complaint_accepted) {
+      $complaintBtn.prop("disabled", true).text("Complaint Accepted (Refunded)");
+    }
+
+    $complaintBtn.on("click", function () {
+      if (data.complaint_accepted) return;
+
       const button = this;
       const confirmed = confirm("This action will trigger a refund to the buyer. Are you sure you want to proceed?");
       if (!confirmed) return;
@@ -63,28 +78,26 @@
       });
       let orderId = params.id || params.post;
 
-      fetch(t4e_pg_trustap_admin_data.accept_complaint_url, {
+      fetch(data.accept_complaint_url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-WP-Nonce": t4e_pg_trustap_admin_data.nonce,
+          "X-WP-Nonce": data.nonce,
         },
         credentials: "include",
         body: JSON.stringify({ orderId }),
       })
         .then(async (response) => {
-          let data = await response.json();
+          let resData = await response.json();
           if (response.ok) {
-            // Sync the dropdown status to 'complaint-accepted'
             const $statusSelect = $('select#order_status, select[name="order_status"]');
             if ($statusSelect.length) {
               $statusSelect.val('wc-complaint-accepted');
             }
-
-            alert(data.message || "Complaint accepted successfully!");
+            alert(resData.message || "Complaint accepted successfully!");
             location.reload();
           } else {
-            alert(data.message || "Failed to accept complaint!");
+            alert(resData.message || "Failed to accept complaint!");
           }
         })
         .catch((error) => {
@@ -95,24 +108,25 @@
         });
     });
 
-    // 2. Intercept Status Dropdown Changes in Admin Order Details
-    if (t4e_pg_trustap_admin_data.payment_method === 'trustap') {
+    // 3. Intercept Status Dropdown Changes
+    if (data.payment_method === 'trustap') {
       const $statusSelect = $('select#order_status, select[name="order_status"]');
       
-      // We listen for the 'change' on the select, but we need to intercept the 'Update' button click
-      // or provide a warning immediately on change.
       $statusSelect.on('change', function() {
         const newStatus = $(this).val();
         let message = '';
 
         if (newStatus === 'wc-completed' || newStatus === 'completed') {
-          message = "Changing status to 'Completed' will automatically release the funds to the seller on Trustap. Do you want to continue?";
+          if (!data.funds_released) {
+            message = "Changing status to 'Completed' will automatically release the funds to the seller on Trustap. Do you want to continue?";
+          }
         } else if (newStatus === 'wc-complaint-accepted' || newStatus === 'complaint-accepted') {
-          message = "Changing status to 'Complaint Accepted' will automatically trigger a refund to the buyer on Trustap. Do you want to continue?";
+          if (!data.complaint_accepted) {
+            message = "Changing status to 'Complaint Accepted' will automatically trigger a refund to the buyer on Trustap. Do you want to continue?";
+          }
         }
 
         if (message && !confirm(message)) {
-          // Revert to previous value (this is tricky, so we store it)
           $(this).val($(this).data('prev-val'));
           return false;
         }
@@ -120,7 +134,6 @@
         $(this).data('prev-val', newStatus);
       });
 
-      // Initialize prev-val
       $statusSelect.data('prev-val', $statusSelect.val());
     }
   });
