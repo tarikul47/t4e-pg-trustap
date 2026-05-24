@@ -5,7 +5,7 @@
     </div>
     <p style="font-size: 0.9em; color: #444; margin-bottom: 12px;">
         <?php echo esc_html__(
-            "Click below to confirm handover and release funds to the seller.",
+            "Once you have handed over the item to the buyer, click the button below to release the escrowed funds to the seller's account.",
             "trustap-payment-gateway"
         )
             ?>

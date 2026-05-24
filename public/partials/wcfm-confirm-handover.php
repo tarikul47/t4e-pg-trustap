@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     <p style="margin-bottom: 15px; font-size: 0.95em; color: #444;">
         <?php
         echo esc_html__(
-            "Once you have handed over the item to the buyer, click the button below to release the escrowed funds to your account.",
+            "Once you have handed over the item to the buyer, click the button below to release the escrowed funds to the seller's account.",
             "t4e-pg-trustap"
         );
         ?>
