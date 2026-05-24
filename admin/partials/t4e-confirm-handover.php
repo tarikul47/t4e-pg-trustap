@@ -11,7 +11,7 @@
             ?>
     </p>
     <button id="t4e-confirm-handover-button-admin" class="button-primary" type="button" style="background: #46b450; border-color: #46b450; box-shadow: none; text-shadow: none;">
-        <?php echo esc_html__("Confirm & Release", "trustap-payment-gateway") ?>
+        <?php echo esc_html__("Confirm & Release Funds", "trustap-payment-gateway") ?>
     </button>
     <div id="t4e-handover-spinner" style="display: none; margin-top: 10px;">
         <div class="t4e-spinner"></div>
